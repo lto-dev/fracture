@@ -1,6 +1,6 @@
 # ApiQuest Fracture
 
-**Fracture** is the core API testing runner for ApiQuest. It's a deterministic, plugin-based test runner designed for CI/CD pipelines and programmatic execution of API collections.
+Fracture ([`@apiquest/fracture`](packages/fracture/)) is the core runner engine for ApiQuest. It provides both a CLI and programmatic API to run JSON-based test collections with support for multiple protocols (HTTP, gRPC, GraphQL, WebSocket, SQL) via its plugin architecture
 
 ## Key Features
 
