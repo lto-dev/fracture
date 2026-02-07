@@ -36,7 +36,7 @@ fracture run ./examples/basic-api.json
 ```bash
 fracture run ./examples/basic-api.json \
   -e ./examples/test-environment.json \
-  -g baseUrl=https://jsonplaceholder.typicode.com \
+  -g baseUrl=https://jsonplaceholder.apiquest.net \
   -g apiVersion=v1
 ```
 
@@ -100,7 +100,7 @@ const runner = new CollectionRunner({
 
 const result = await runner.run(collection, {
   globalVariables: {
-    baseUrl: 'https://jsonplaceholder.typicode.com'
+    baseUrl: 'https://jsonplaceholder.apiquest.net'
   }
 });
 
@@ -128,7 +128,7 @@ const result = await run({
   collection,
   environment,
   globalVariables: {
-    baseUrl: 'https://jsonplaceholder.typicode.com'
+    baseUrl: 'https://jsonplaceholder.apiquest.net'
   }
 });
 
