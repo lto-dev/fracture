@@ -1,0 +1,444 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apiquest.net/schemas/collection-v1.0.json",
+  "title": "ApiQuest Collection Schema",
+  "description": "Schema for ApiQuest collection files v1.0",
+  "type": "object",
+  "required": ["info", "protocol", "items"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema URL for validation"
+    },
+    "info": {
+      "$ref": "#/definitions/collectionInfo"
+    },
+    "protocol": {
+      "type": "string",
+      "description": "Protocol for all requests in this collection (http, graphql, grpc, websocket, etc.)"
+    },
+    "auth": {
+      "$ref": "#/definitions/auth"
+    },
+    "variables": {
+      "type": "object",
+      "description": "Variable map (key → value or variable object)",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          { "$ref": "#/definitions/variable" }
+        ]
+      }
+    },
+    "collectionPreScript": {
+      "type": "string",
+      "description": "JavaScript code to run once at collection start"
+    },
+    "collectionPostScript": {
+      "type": "string",
+      "description": "JavaScript code to run once at collection end"
+    },
+    "preRequestScript": {
+      "type": "string",
+      "description": "JavaScript code to run before each request"
+    },
+    "postRequestScript": {
+      "type": "string",
+      "description": "JavaScript code to run after each request"
+    },
+    "testData": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/iterationData"
+      },
+      "description": "Iteration data for collection-level iterations"
+    },
+    "options": {
+      "$ref": "#/definitions/runtimeOptions"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/collectionItem"
+      }
+    }
+  },
+  "definitions": {
+    "collectionInfo": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique collection identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name"
+        },
+        "version": {
+          "type": "string",
+          "description": "Semantic version"
+        },
+        "description": {
+          "type": "string",
+          "description": "Markdown-supported description"
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Auth plugin name or 'inherit' or 'none'"
+        },
+        "data": {
+          "type": "object",
+          "description": "Plugin-specific auth configuration"
+        }
+      }
+    },
+    "variable": {
+      "type": "object",
+      "required": ["value"],
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["string", "number", "boolean"]
+        },
+        "isSecret": {
+          "type": "boolean"
+        },
+        "isRequired": {
+          "type": "boolean"
+        },
+        "provider": {
+          "type": "string",
+          "description": "Variable provider: env, vault:aws-secrets, etc."
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "iterationData": {
+      "type": "object",
+      "description": "Key-value pairs for iteration data",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "number" },
+          { "type": "boolean" }
+        ]
+      }
+    },
+    "runtimeOptions": {
+      "type": "object",
+      "properties": {
+        "execution": {
+          "$ref": "#/definitions/executionOptions"
+        },
+        "libraries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/externalLibrary"
+          }
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cookie"
+          }
+        },
+        "jar": {
+          "$ref": "#/definitions/cookieJarOptions"
+        },
+        "ssl": {
+          "$ref": "#/definitions/sslOptions"
+        },
+        "proxy": {
+          "$ref": "#/definitions/proxyOptions"
+        },
+        "timeout": {
+          "$ref": "#/definitions/timeoutOptions"
+        },
+        "followRedirects": {
+          "type": "boolean"
+        },
+        "maxRedirects": {
+          "type": "number"
+        },
+        "plugins": {
+          "type": "object",
+          "description": "Plugin-specific options",
+          "additionalProperties": true
+        }
+      }
+    },
+    "executionOptions": {
+      "type": "object",
+      "properties": {
+        "allowParallel": {
+          "type": "boolean",
+          "description": "Enable parallel execution"
+        },
+        "maxConcurrency": {
+          "type": "number",
+          "description": "Max parallel requests"
+        },
+        "bail": {
+          "type": "boolean",
+          "description": "Stop on first failure"
+        },
+        "delay": {
+          "type": "number",
+          "description": "Delay between requests in milliseconds"
+        }
+      }
+    },
+    "externalLibrary": {
+      "type": "object",
+      "required": ["name", "source"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Variable name in script context"
+        },
+        "source": {
+          "$ref": "#/definitions/librarySource"
+        },
+        "version": {
+          "type": "string",
+          "description": "Version for npm sources"
+        }
+      }
+    },
+    "librarySource": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "package"],
+          "properties": {
+            "type": { "const": "npm" },
+            "package": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "url"],
+          "properties": {
+            "type": { "const": "cdn" },
+            "url": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "path"],
+          "properties": {
+            "type": { "const": "file" },
+            "path": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "cookie": {
+      "type": "object",
+      "required": ["name", "value"],
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": "string" },
+        "domain": { "type": "string" },
+        "path": { "type": "string" },
+        "expires": { "type": "string", "format": "date-time" },
+        "httpOnly": { "type": "boolean" },
+        "secure": { "type": "boolean" },
+        "sameSite": {
+          "type": "string",
+          "enum": ["Strict", "Lax", "None"]
+        }
+      }
+    },
+    "cookieJarOptions": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "persist": { "type": "boolean" }
+      }
+    },
+    "sslOptions": {
+      "type": "object",
+      "properties": {
+        "validateCertificates": { "type": "boolean" },
+        "clientCertificate": {
+          "type": "object",
+          "required": ["cert", "key"],
+          "properties": {
+            "cert": { "type": "string" },
+            "key": { "type": "string" },
+            "passphrase": { "type": "string" }
+          }
+        },
+        "ca": { "type": "string" }
+      }
+    },
+    "proxyOptions": {
+      "type": "object",
+      "required": ["enabled", "host", "port"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "host": { "type": "string" },
+        "port": { "type": "number" },
+        "auth": {
+          "type": "object",
+          "required": ["username", "password"],
+          "properties": {
+            "username": { "type": "string" },
+            "password": { "type": "string" }
+          }
+        },
+        "bypass": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "timeoutOptions": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "type": "number",
+          "description": "Per-request timeout in milliseconds"
+        },
+        "connection": {
+          "type": "number",
+          "description": "Connection timeout in milliseconds"
+        },
+        "response": {
+          "type": "number",
+          "description": "Response timeout in milliseconds"
+        }
+      }
+    },
+    "collectionItem": {
+      "oneOf": [
+        { "$ref": "#/definitions/request" },
+        { "$ref": "#/definitions/folder" }
+      ]
+    },
+    "folder": {
+      "type": "object",
+      "required": ["type", "id", "name", "items"],
+      "properties": {
+        "type": { "const": "folder" },
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "auth": { "$ref": "#/definitions/auth" },
+        "dependsOn": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Folder/Request IDs that must execute first"
+        },
+        "condition": {
+          "type": "string",
+          "description": "JavaScript expression to evaluate"
+        },
+        "folderPreScript": {
+          "type": "string",
+          "description": "Runs once when entering folder"
+        },
+        "folderPostScript": {
+          "type": "string",
+          "description": "Runs once when leaving folder"
+        },
+        "preRequestScript": {
+          "type": "string",
+          "description": "Runs before each request in folder"
+        },
+        "postRequestScript": {
+          "type": "string",
+          "description": "Runs after each request in folder"
+        },
+        "options": { "$ref": "#/definitions/runtimeOptions" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/collectionItem" }
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "required": ["type", "id", "name", "data"],
+      "properties": {
+        "type": { "const": "request" },
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "dependsOn": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Request IDs that must execute first"
+        },
+        "condition": {
+          "type": "string",
+          "description": "JavaScript expression to evaluate"
+        },
+        "auth": { "$ref": "#/definitions/auth" },
+        "data": {
+          "type": "object",
+          "description": "Protocol-specific request data (defined by protocol plugins)",
+          "properties": {
+            "scripts": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/protocolScript" }
+            }
+          },
+          "additionalProperties": true
+        },
+        "preRequestScript": { "type": "string" },
+        "postRequestScript": { "type": "string" },
+        "options": { "$ref": "#/definitions/runtimeOptions" },
+        "examples": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/responseExample" }
+        }
+      }
+    },
+    "protocolScript": {
+      "type": "object",
+      "required": ["event", "script"],
+      "properties": {
+        "event": {
+          "type": "string",
+          "description": "Event name: onMessage, onError, onComplete, etc."
+        },
+        "script": {
+          "type": "string",
+          "description": "JavaScript code to execute"
+        }
+      }
+    },
+    "responseExample": {
+      "type": "object",
+      "required": ["name", "protocol", "data"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "protocol": { "type": "string" },
+        "data": {
+          "description": "Protocol-specific response data",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}
