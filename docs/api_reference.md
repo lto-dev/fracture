@@ -522,8 +522,8 @@ Collection validation control.
 
 **Configuration:**
 ```bash
-quest run collection.json --strict-mode true   # default
-quest run collection.json --strict-mode false
+fracture run collection.json --strict-mode true   # default
+fracture run collection.json --strict-mode false
 ```
 
 ```typescript
@@ -787,16 +787,16 @@ Collection End
 
 ```bash
 # Use external CSV data
-quest run users.json --data test-users.csv
+fracture run users.json --data test-users.csv
 
-# Use external JSON data  
-quest run users.json --data test-users.json
+# Use external JSON data
+fracture run users.json --data test-users.json
 
 # Limit iterations (must be <= number of data rows)
-quest run users.json --data test-users.csv --iterations 100
+fracture run users.json --data test-users.csv --iterations 100
 
 # With environment and global variables
-quest run users.json --data test-users.csv -e dev.json --global apiKey=abc123
+fracture run users.json --data test-users.csv -e dev.json --global apiKey=abc123
 ```
 
 **How It Works:**
@@ -908,7 +908,7 @@ if (shouldExist) {
 
 **Run:**
 ```bash
-quest run user-tests.json --data test-users.csv -e dev.json
+fracture run user-tests.json --data test-users.csv -e dev.json
 ```
 
 **Expected Output:**
@@ -1137,10 +1137,10 @@ const hash = CryptoJS.SHA256(quest.request.body.get());
 **CLI activates parallel execution:**
 ```bash
 # Run in parallel (requires allowParallel: true in collection)
-quest run collection.json --parallel
+fracture run collection.json --parallel
 
 # Override max concurrency
-quest run collection.json --parallel --concurrency 10
+fracture run collection.json --parallel --concurrency 10
 ```
 
 **How it works:**

@@ -1,4 +1,4 @@
-# Quest Runner Architecture - @apiquest/fracture
+# Quest Runner Architecture - @apiquest/fracture v1.0
 
 ## Overview
 
@@ -288,9 +288,9 @@ afterRun
 
 ## Data Iteration Model
 
-### Collection-Level Iteration Only
+### Collection-Level Iteration
 
-**Simplified Model:** Iteration data is defined at the collection level (or via CLI `--data`)
+Iteration data is defined at the collection level (or via CLI `--data`)
 
 **Iteration Source:**
 1. **CLI `--data file.csv`** - Completely replaces collection.testData
@@ -342,13 +342,13 @@ Total: 9 request executions (3 requests × 3 iterations)
 
 ```bash
 # Limit to first 5 iterations
-quest run collection.json --iterations 5
+fracture run collection.json --iterations 5
 
 # With testData: uses first 5 rows
-quest run collection.json --data users.csv --iterations 5
+fracture run collection.json --data users.csv --iterations 5
 
 # Without testData: runs collection 5 times (repetition mode)
-quest run collection.json --iterations 5
+fracture run collection.json --iterations 5
 ```
 
 **Examples:**
@@ -925,8 +925,9 @@ All three command aliases are equivalent:
 
 ```bash
 fracture run <collection.json> [options]
-quest run <collection.json> [options]
-apiquest run <collection.json> [options]
+# Also available as:
+# quest run <collection.json> [options]
+# apiquest run <collection.json> [options]
 ```
 
 ### Options
@@ -949,19 +950,19 @@ apiquest run <collection.json> [options]
 
 ```bash
 # Basic
-quest run api-tests.json
+fracture run api-tests.json
 
 # With environment and data
-quest run api-tests.json -e prod.json -d users.csv
+fracture run api-tests.json -e prod.json -d users.csv
 
 # Debug logging
-quest run api-tests.json --log-level debug
+fracture run api-tests.json --log-level debug
 
 # Disable strict mode
-quest run api-tests.json --strict-mode false
+fracture run api-tests.json --strict-mode false
 
 # Complex
-quest run api-tests.json -e prod.json -d users.csv -g apiKey=abc123 --log-level info --bail
+fracture run api-tests.json -e prod.json -d users.csv -g apiKey=abc123 --log-level info --bail
 ```
 
 ---
@@ -1178,10 +1179,10 @@ ApiQuest uses a Directed Acyclic Graph (DAG) scheduler for all execution, suppor
 **CLI Override:**
 ```bash
 # Parallel mode with 10 concurrent requests
-quest run collection.json --parallel --concurrency 10 --bail
+fracture run collection.json --parallel --concurrency 10 --bail
 
 # Sequential mode (concurrency=1, no --parallel flag needed)
-quest run collection.json --bail
+fracture run collection.json --bail
 ```
 
 **DAG Scheduling Model:**
@@ -1257,22 +1258,22 @@ The collection is transformed into a DAG where:
 **Path-Based Filtering:**
 ```bash
 # Filter by path - match requests in folder
-quest run collection.json --filter "request:/Users/"
+fracture run collection.json --filter "request:/Users/"
 
 # Filter by request name across all folders
-quest run collection.json --filter "request:.*/Auth.*"
+fracture run collection.json --filter "request:.*/Auth.*"
 
 # Exclude a folder (negation)
-quest run collection.json --filter "^(?!.*Slow).*"
+fracture run collection.json --filter "^(?!.*Slow).*"
 ```
 
 **Dependency Handling:**
 ```bash
 # By default, dependencies are included
-quest run collection.json --filter "request:/Critical/"
+fracture run collection.json --filter "request:/Critical/"
 
 # Exclude dependencies (run only filtered requests)
-quest run collection.json --filter "request:/Critical/" --exclude-deps
+fracture run collection.json --filter "request:/Critical/" --exclude-deps
 ```
 
 ### Memory Management
@@ -1667,39 +1668,3 @@ afterRun
   "items": [...]
 }
 ```
-
-
----
-
-## Future Enhancements
-
-- [ ] Parallel request execution
-- [ ] Request retry logic
-- [ ] Request delays/throttling
-- [ ] Custom reporters
-- [ ] Snapshot testing
-- [ ] Performance profiling
-- [ ] Mock server integration
-- [ ] GraphQL introspection
-- [ ] WebSocket support (interactive)
-- [ ] gRPC streaming
-
----
-
-## Related Packages
-
-- **@apiquest/cli** - Command-line interface
-- **@apiquest/desktop** - Electron desktop app
-- **@apiquest/plugin-http** - HTTP protocol support
-- **@apiquest/plugin-graphql** - GraphQL support
-- **@apiquest/plugin-grpc** - gRPC support
-
----
-
-**Version:** 2.1.0  
-**Last Updated:** 2026-01-31  
-**Status:** Architecture specification for Node.js implementation - Collection-only iteration model
-
-**Changelog:**
-- 2026-01-31: Added pre-run validation, deterministic test counting, plugin event enhancements (event.index, expectMessages), log level control
-- 2026-01-05: Initial Node.js architecture specification

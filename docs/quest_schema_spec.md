@@ -1,10 +1,6 @@
 # ApiQuest Collection Schema Specification v1.0
 
-**Version:** 1.0.0  
 **Schema:** https://apiquest.dev/schemas/collection-v1.0.json  
-**Last Updated:** 2026-01-31
-
----
 
 ## Overview
 
@@ -560,10 +556,10 @@ The CLI `--data` flag provides testData from an external file:
 
 ```bash
 # Override collection testData with CSV file
-quest run collection.json --data users.csv
+fracture run collection.json --data users.csv
 
 # Override collection testData with JSON file
-quest run collection.json --data test-data.json
+fracture run collection.json --data test-data.json
 ```
 
 **Iteration Rules:**
@@ -577,10 +573,10 @@ The `--iterations N` flag limits the number of iterations:
 
 ```bash
 # Limit to first 5 iterations
-quest run collection.json --iterations 5
+fracture run collection.json --iterations 5
 
 # With --data: limit external data
-quest run collection.json --data users.csv --iterations 10
+fracture run collection.json --data users.csv --iterations 10
 ```
 
 **Behavior Matrix:**
@@ -1323,24 +1319,3 @@ Final Options = Collection options (base)
 3. Deep merge request options (request values override on key-by-key basis)
 4. Pass final merged options to all plugins
 ```
-
----
-
-## Schema Versioning
-
-**Current Version:** 1.0.0
-
-**Version History:**
-- **1.0.0** (2026-01-04) - Initial release with folders, dependencies, multi-protocol, lifecycle scripts, options
-
-**Future Versions:**
-- Collections will include `$schema` field pointing to specific version
-- Runner auto-detects version from `$schema` or `info.version`
-
----
-
-## License
-
-ApiQuest Collection Schema v2.1 is released under the MIT License.
-
-Copyright © 2026 ApiQuest Contributors

@@ -1,18 +1,18 @@
-# Quest CLI Architecture - @apiquest/cli
+# Quest CLI Architecture - @apiquest/fracture
 
 ## Overview
 
-`@apiquest/cli` is the command-line interface for Quest. It provides the `quest` command for running API test collections from the terminal, CI/CD pipelines, and automated workflows.
+`@apiquest/fracture` is the core collection runner engine for ApiQuest with an integrated command-line interface. It provides CLI commands for running API test collections from the terminal, CI/CD pipelines, and automated workflows.
 
 ---
 
 ## Package Information
 
-**NPM Package:** `@apiquest/cli`  
-**Command Name:** `quest`  
+**NPM Package:** `@apiquest/fracture`  
+**Command Names:** `quest`, `apiquest`, or `fracture`  
 **Language:** TypeScript  
 **Runtime:** Node.js 18+  
-**License:** AGPL-3-or-later
+**License:** AGPL-3.0-or-later
 
 ---
 
@@ -22,9 +22,9 @@
 
 ```bash
 # Install globally
-npm install -g @apiquest/cli
+npm install -g @apiquest/fracture
 
-# Now `quest` command is available
+# Now `quest` command is available (also `apiquest` or `fracture`)
 quest --version
 quest run collection.json
 ```
@@ -33,7 +33,7 @@ quest run collection.json
 
 ```bash
 # Install as dev dependency
-npm install --save-dev @apiquest/cli
+npm install --save-dev @apiquest/fracture
 
 # Use via npx
 npx quest run collection.json
@@ -50,20 +50,23 @@ npx quest run collection.json
 
 ```bash
 # Run without installing
-npx @apiquest/cli run collection.json
+npx @apiquest/fracture run collection.json
+
+# Or use any of the command aliases
+npx quest run collection.json
 ```
 
 ---
 
 ## CLI Commands
 
-### `quest run`
+### `fracture run`
 
 Execute a collection with full control over iterations, environment, and output.
 
 **Syntax:**
 ```bash
-quest run <collection> [options]
+fracture run <collection> [options]
 ```
 
 **Arguments:**
@@ -172,23 +175,23 @@ quest run <collection> [options]
 
 ```bash
 # Run collection
-quest run api-tests.json
+fracture run api-tests.json
 
 # With environment
-quest run api-tests.json -e production.json
+fracture run api-tests.json -e production.json
 
 # With iteration data
-quest run api-tests.json --data test-users.csv
+fracture run api-tests.json --data test-users.csv
 ```
 
 ### Global Variables
 
 ```bash
 # Set single variable
-quest run api-tests.json -g authToken=abc123
+fracture run api-tests.json -g authToken=abc123
 
 # Set multiple variables
-quest run api-tests.json \
+fracture run api-tests.json \
   -g authToken=abc123 \
   -g baseUrl=https://api.example.com
 ```
@@ -199,13 +202,13 @@ The `--iterations` flag controls how many times requests execute:
 
 ```bash
 # Limit CLI data to first 10 rows
-quest run api-tests.json --data users.csv --iterations 10
+fracture run api-tests.json --data users.csv --iterations 10
 
 # Limit collection testData to first 10 rows
-quest run api-tests.json --iterations 10
+fracture run api-tests.json --iterations 10
 
 # Collection repetition (no testData anywhere)
-quest run api-tests.json --iterations 10
+fracture run api-tests.json --iterations 10
 ```
 
 **How `--iterations` Works:**
@@ -219,7 +222,7 @@ quest run api-tests.json --iterations 10
    # - Folder A: testData with 100 rows
    # - Folder B: testData with 30 rows
    
-   quest run collection.json --iterations 5
+   fracture run collection.json --iterations 5
    
    # Result:
    # - Folder A runs 5 times (min(5, 100))
@@ -232,7 +235,7 @@ quest run api-tests.json --iterations 10
    
    ```bash
    # No testData in collection
-   quest run collection.json --iterations 3
+   fracture run collection.json --iterations 3
    
    # Result: Entire collection runs 3 times
    ```
@@ -242,7 +245,7 @@ quest run api-tests.json --iterations 10
    - `--iterations` limits the data file
    
    ```bash
-   quest run collection.json --data users.csv --iterations 10
+   fracture run collection.json --data users.csv --iterations 10
    
    # Uses first 10 rows from users.csv
    # All collection testData ignored
@@ -261,42 +264,42 @@ No data + --iterations    →  Repeat collection N times
 
 ```bash
 # Filter by path - all requests in "User API" folder
-quest run api-tests.json --filter "request:/User API/"
+fracture run api-tests.json --filter "request:/User API/"
 
 # Filter by request name pattern
-quest run api-tests.json --filter "request:.*/test_.*"
+fracture run api-tests.json --filter "request:.*/test_.*"
 
 # Multiple folders using regex alternation
-quest run api-tests.json --filter "request:/(Auth|Users)/"
+fracture run api-tests.json --filter "request:/(Auth|Users)/"
 
 # Exclude a folder (negation)
-quest run api-tests.json --filter "^(?!.*Slow Tests).*"
+fracture run api-tests.json --filter "^(?!.*Slow Tests).*"
 
 # Filter with dependencies excluded
-quest run api-tests.json --filter "request:/Critical/" --exclude-deps
+fracture run api-tests.json --filter "request:/Critical/" --exclude-deps
 ```
 
 ### Reporting
 
 ```bash
 # CLI output only (default)
-quest run api-tests.json
+fracture run api-tests.json
 
 # Generate JSON report
-quest run api-tests.json -r json -o ./reports
+fracture run api-tests.json -r json -o ./reports
 
 # Multiple reporters
-quest run api-tests.json -r cli,json,html,junit -o ./reports
+fracture run api-tests.json -r cli,json,html,junit -o ./reports
 
 # Silent mode (no console output, only files)
-quest run api-tests.json -r json,html --silent -o ./reports
+fracture run api-tests.json -r json,html --silent -o ./reports
 ```
 
 ### CI/CD Examples
 
 ```bash
 # GitHub Actions / GitLab CI
-quest run api-tests.json \
+fracture run api-tests.json \
   -e ci.json \
   -g buildId=$CI_BUILD_ID \
   -r junit \
@@ -349,25 +352,25 @@ quest run api-tests.json \
 
 ```bash
 # Error only
-quest run api-tests.json --log-level error
+fracture run api-tests.json --log-level error
 
 # Warnings and errors
-quest run api-tests.json --log-level warn
+fracture run api-tests.json --log-level warn
 
 # Info (default), warnings and errors
-quest run api-tests.json --log-level info
+fracture run api-tests.json --log-level info
 
 # Debug output - shows detailed execution
-quest run api-tests.json --log-level debug
+fracture run api-tests.json --log-level debug
 
 # Trace output - extremely detailed, shows all execution steps
-quest run api-tests.json --log-level trace
+fracture run api-tests.json --log-level trace
 ```
 
 ### Silent Mode
 
 ```bash
-quest run api-tests.json --silent -r json -o ./reports
+fracture run api-tests.json --silent -r json -o ./reports
 
 # No console output
 # Exit code indicates success/failure
@@ -385,9 +388,9 @@ quest run api-tests.json --silent -r json -o ./reports
 **Use:** Interactive development
 
 ```bash
-quest run collection.json
+fracture run collection.json
 # or
-quest run collection.json -r cli
+fracture run collection.json -r cli
 ```
 
 ### JSON Reporter
@@ -397,7 +400,7 @@ quest run collection.json -r cli
 **Use:** Integration with other tools, custom processing
 
 ```bash
-quest run collection.json -r json -o ./reports
+fracture run collection.json -r json -o ./reports
 ```
 
 **Format:**
@@ -439,7 +442,7 @@ quest run collection.json -r json -o ./reports
 **Use:** Shareable visual report
 
 ```bash
-quest run collection.json -r html -o ./reports
+fracture run collection.json -r html -o ./reports
 ```
 
 **Features:**
@@ -456,7 +459,7 @@ quest run collection.json -r html -o ./reports
 **Use:** CI/CD integration (Jenkins, GitLab, GitHub Actions)
 
 ```bash
-quest run collection.json -r junit -o ./test-results
+fracture run collection.json -r junit -o ./test-results
 ```
 
 **Format:**
@@ -486,7 +489,7 @@ quest run collection.json -r junit -o ./test-results
 **Usage in CI/CD:**
 ```bash
 #!/bin/bash
-quest run api-tests.json -e prod.json
+fracture run api-tests.json -e prod.json
 
 if [ $? -eq 0 ]; then
   echo "✓ All tests passed"
@@ -523,33 +526,10 @@ Optional configuration file for project defaults.
 **Usage:**
 ```bash
 # Uses config file defaults
-quest run api-tests.json
+fracture run api-tests.json
 
 # Override config
-quest run api-tests.json -r html --timeout 60000
-```
-
----
-
-## Environment Variables
-
-CLI reads these environment variables:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `QUEST_ENV` | Default environment file | `production.json` |
-| `QUEST_REPORTERS` | Default reporters | `cli,json` |
-| `QUEST_OUTPUT` | Default output directory | `./reports` |
-| `QUEST_TIMEOUT` | Request timeout (ms) | `30000` |
-| `NO_COLOR` | Disable colors | `1` |
-
-**Example:**
-```bash
-export QUEST_ENV=prod.json
-export QUEST_REPORTERS=json,html
-
-quest run api-tests.json
-# Uses prod.json and generates json+html reports
+fracture run api-tests.json -r html --timeout 60000
 ```
 
 ---
@@ -572,12 +552,12 @@ jobs:
         with:
           node-version: '18'
       
-      - name: Install Quest
-        run: npm install -g @apiquest/cli
+      - name: Install Fracture
+        run: npm install -g @apiquest/fracture
       
       - name: Run Tests
         run: |
-          quest run tests/api-tests.json \
+          fracture run tests/api-tests.json \
             -e tests/ci.json \
             -g apiKey=${{ secrets.API_KEY }} \
             -r junit,html \
@@ -605,9 +585,9 @@ api-tests:
   stage: test
   image: node:18
   script:
-    - npm install -g @apiquest/cli
+    - npm install -g @apiquest/fracture
     - |
-      quest run tests/api-tests.json \
+      fracture run tests/api-tests.json \
         -e tests/ci.json \
         -g apiKey=$API_KEY \
         -r junit \
@@ -627,14 +607,14 @@ pipeline {
     stages {
         stage('Install') {
             steps {
-                sh 'npm install -g @apiquest/cli'
+                sh 'npm install -g @apiquest/fracture'
             }
         }
         
         stage('Test') {
             steps {
                 sh '''
-                    quest run tests/api-tests.json \
+                    fracture run tests/api-tests.json \
                       -e tests/ci.json \
                       -r junit \
                       -o test-results
@@ -653,35 +633,16 @@ pipeline {
 
 ---
 
-## CLI Architecture
-
-### Internal Structure
-
-```
-@apiquest/cli
-├── src/
-│   ├── commands/
-│   │   └── run.ts           # `quest run` command
-│   ├── reporters/
-│   │   ├── cli.ts           # Console reporter
-│   │   ├── json.ts          # JSON reporter
-│   │   ├── html.ts          # HTML reporter
-│   │   └── junit.ts         # JUnit XML reporter
-│   ├── utils/
-│   │   ├── file-loader.ts   # Load collections, data
-│   │   ├── logger.ts        # Logging utilities
-│   │   └── exit-handler.ts  # Exit code management
-│   └── index.ts             # CLI entry point
-└── package.json
-```
 
 ### Command Implementation
 
+The CLI is integrated directly into the `@apiquest/fracture` package using Commander.js:
+
 ```typescript
-// src/commands/run.ts
+// bin/cli.js (conceptual)
 import { Command } from 'commander';
-import { CollectionRunner } from '@apiquest/fracture';
-import { CLIReporter } from '../reporters/cli';
+import { CollectionRunner } from '../dist/index.js';
+import { ConsoleReporter } from '../dist/ConsoleReporter.js';
 
 export const runCommand = new Command('run')
     .argument('<collection>', 'Collection file path')
@@ -700,7 +661,7 @@ export const runCommand = new Command('run')
             : undefined;
         
         const runner = new CollectionRunner();
-        const reporter = new CLIReporter();
+        const reporter = new ConsoleReporter();
         
         // Listen to events
         runner.on('requestCompleted', (result) => {
@@ -747,24 +708,7 @@ export interface IReporter {
 
 ## Programmatic Usage
 
-While primarily a CLI tool, `@apiquest/cli` can be used programmatically:
-
-```typescript
-import { runCommand } from '@apiquest/cli';
-
-// Programmatic execution
-await runCommand.parseAsync([
-    'node',
-    'quest',
-    'run',
-    'collection.json',
-    '-e', 'prod.json',
-    '-r', 'json',
-    '-o', './results'
-]);
-```
-
-**Note:** For programmatic usage, use `@apiquest/fracture` directly instead:
+`@apiquest/fracture` can also be used programmatically:
 
 ```typescript
 import { CollectionRunner } from '@apiquest/fracture';
@@ -773,42 +717,26 @@ const runner = new CollectionRunner();
 const result = await runner.run(collection, options);
 ```
 
+For more information on programmatic usage, see the [Quest Runner documentation](quest_runner.md).
+
 ---
 
 ## Debugging
-
-### Enable Debug Logging
-
-```bash
-# Set DEBUG environment variable
-DEBUG=quest:* quest run collection.json
-
-# Specific modules
-DEBUG=quest:runner quest run collection.json
-DEBUG=quest:scripts quest run collection.json
-```
 
 ### Debug/Trace Output
 
 ```bash
 # Use --log-level debug for detailed output
-quest run collection.json --log-level debug
+fracture run collection.json --log-level debug
 
 # Use --log-level trace for extremely detailed output
-quest run collection.json --log-level trace
+fracture run collection.json --log-level trace
 
 # Shows:
 # - Variable resolution steps
 # - Script execution
 # - Request/response details
 # - Plugin loading
-```
-
-### Dry Run (Future)
-
-```bash
-# Future feature: validate without executing
-quest run collection.json --dry-run
 ```
 
 ---
@@ -819,25 +747,25 @@ quest run collection.json --dry-run
 
 **Collection not found:**
 ```bash
-quest run api-tests.json
+fracture run api-tests.json
 # Error: ENOENT: no such file or directory
 
 # Solution: Use correct path
-quest run ./tests/api-tests.json
+fracture run ./tests/api-tests.json
 ```
 
 **Environment variables not working:**
 ```bash
-quest run collection.json -g token={{TOKEN}}
+fracture run collection.json -g token={{TOKEN}}
 # Variable not resolved
 
 # Solution: Use quotes
-quest run collection.json -g "token=$TOKEN"
+fracture run collection.json -g "token=$TOKEN"
 ```
 
 **CSV parsing errors:**
 ```bash
-quest run collection.json --data users.csv
+fracture run collection.json --data users.csv
 # Error: Malformed CSV
 
 # Solution: Check CSV format, encoding (UTF-8)
@@ -855,80 +783,23 @@ quest run collection.json --data users.csv
 
 ## Performance Tips
 
-### Parallel Execution (Future)
+### Parallel Execution
 
 ```bash
-# Future feature
-quest run collection.json --parallel --max-concurrency 5
-```
-
-### Caching
-
-```bash
-# Future: Cache plugin installations
-quest run collection.json --cache
+# Enable parallel execution for better performance
+fracture run collection.json --parallel --concurrency 5
 ```
 
 ### Selective Execution
 
 ```bash
 # Run only specific folder (faster)
-quest run collection.json --filter "request:/Critical Tests/"
+fracture run collection.json --filter "request:/Critical Tests/"
 
 # Skip slow tests (negation)
-quest run collection.json --filter "^(?!.*Slow).*"
+fracture run collection.json --filter "^(?!.*Slow).*"
 
 # Run only requests matching pattern
-quest run collection.json --filter "request:.*/Health.*"
+fracture run collection.json --filter "request:.*/Health.*"
 ```
 
----
-
-## Migration from C# CLI
-
-### Command Comparison
-
-| C# CLI | Node.js CLI |
-|--------|-------------|
-| `apiquest run` | `quest run` |
-| `--environment` | `-e, --environment` |
-| `--globals` | `-g, --global` |
-| `--data` | `-d, --data` |
-| `--reporters` | `-r, --reporters` |
-
-### Breaking Changes
-
-1. **Command name:** `apiquest` → `quest`
-2. **Package name:** Different npm scope
-3. **Flag syntax:** Some flags renamed for consistency
-
----
-
-## Future Features
-
-- [ ] Interactive mode (`quest run -i`)
-- [ ] Watch mode (`quest run --watch`)
-- [ ] Collection scaffolding (`quest init`)
-- [ ] Request execution (`quest send`)
-- [ ] Environment management (`quest env list`)
-- [ ] Collection validation (`quest validate`)
-- [ ] Dry run mode
-- [ ] Parallel execution
-- [ ] Request mocking
-- [ ] Coverage reports
-
----
-
-## Related Packages
-
-- **@apiquest/fracture** - Core runner engine
-- **@apiquest/desktop** - Desktop GUI
-- **@apiquest/plugin-http** - HTTP protocol
-- **@apiquest/plugin-graphql** - GraphQL support
-- **@apiquest/plugin-grpc** - gRPC support
-
----
-
-**Version:** 2.0.0  
-**Last Updated:** 2026-01-04  
-**Status:** Architecture specification for Node.js CLI
