@@ -4,7 +4,6 @@ import { promisify } from 'util';
 import { readdir, readFile, access } from 'fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
-import { getUserDataPath } from './plugin-discovery.js';
 
 const execAsync = promisify(exec);
 
@@ -44,11 +43,6 @@ export function addPluginCommands(program: Command): void {
     .description('List installed plugins')
     .action(async () => {
       console.log('Installed plugins:\n');
-      
-      // Check shared user data plugins directory (same as desktop)
-      const userDataPath = getUserDataPath();
-      const sharedPluginsDir = path.join(userDataPath, 'plugins');
-      await listPluginsFromDir(sharedPluginsDir, 'Shared (Desktop & CLI)');
       
       // Check global npm packages
       try {

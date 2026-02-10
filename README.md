@@ -13,7 +13,7 @@ Fracture ([`@apiquest/fracture`](packages/fracture/)) is the core runner engine 
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 20+ (LTS)
 
 ## CLI Runner
 
@@ -248,6 +248,43 @@ fracture run api.json --data users.csv --iterations 10
 - Runner emits lifecycle events (`beforeRequest`, `afterRequest`, `assertion`) for custom reporters
 - All examples use `fracture` command (aliases: `quest`, `apiquest`)
 
+## GitHub Actions Workflows
+
+The project includes automated GitHub Actions workflows for continuous integration and publishing:
+
+### CI Workflow (`.github/workflows/ci.yml`)
+
+Runs on every PR and push to `main`:
+- **Fast-fail validation** in order: Lint → Typecheck → Build → Tests
+- **Matrix testing** on Node.js 20.x, 22.x, 24.x (LTS and Maintenance versions)
+- **Auto-blocks PRs** that fail any validation step
+- Uses self-hosted runner
+
+Any PR must pass all checks before merging.
+
+### Publish Workflow (`.github/workflows/publish-npm.yml`)
+
+Triggered by git tags matching `v*` (e.g., `v1.2.3`):
+1. Runs full validation suite (lint, typecheck, build, tests)
+2. If tests pass, publishes packages to NPM in dependency order:
+   - @apiquest/types
+   - @apiquest/fracture
+   - @apiquest/plugin-http
+   - @apiquest/plugin-auth  
+   - @apiquest/plugin-vault-file
+   - @apiquest/plugin-graphql
+- Uses self-hosted runner
+- Requires `NPM_TOKEN` secret configured in repository settings
+
+### Publishing a New Version
+
+1. Merge all PRs (CI automatically validates each one)
+2. Update version numbers in `package.json` files
+3. Commit and push: `git add packages/*/package.json && git commit -m "chore: bump version to 1.2.3" && git push`
+4. Create and push tag: `git tag v1.2.3 && git push origin v1.2.3`
+5. Publish workflow automatically runs
+
+The workflows ensure code quality and only publish when you explicitly create a version tag.
 
 ## Contributing
 

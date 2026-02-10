@@ -11,7 +11,7 @@
 **NPM Package:** `@apiquest/fracture`  
 **Command Names:** `quest`, `apiquest`, or `fracture`  
 **Language:** TypeScript  
-**Runtime:** Node.js 18+  
+**Runtime:** Node.js 20+ (LTS)
 **License:** AGPL-3.0-or-later
 
 ---
@@ -35,13 +35,16 @@ quest run collection.json
 # Install as dev dependency
 npm install --save-dev @apiquest/fracture
 
-# Use via npx
-npx quest run collection.json
+# Install plugins as dev dependencies
+npm install --save-dev @apiquest/plugin-http @apiquest/plugin-auth
+
+# Use via npx (specify plugin location)
+npx fracture run collection.json --plugin-dir ./node_modules/@apiquest
 
 # Or via package.json scripts
 {
   "scripts": {
-    "test:api": "quest run tests/api.json -e prod"
+    "test:api": "fracture run tests/api.json -e prod --plugin-dir ./node_modules/@apiquest"
   }
 }
 ```
@@ -49,12 +52,175 @@ npx quest run collection.json
 ### Zero-Install Usage
 
 ```bash
-# Run without installing
+# Zero-install via npx requires plugins to be available
+# Option 1: Plugins installed globally
+npm install -g @apiquest/plugin-http @apiquest/plugin-auth
 npx @apiquest/fracture run collection.json
 
-# Or use any of the command aliases
-npx quest run collection.json
+# Option 2: Plugins in project's node_modules
+npm install --save-dev @apiquest/plugin-http @apiquest/plugin-auth
+npx @apiquest/fracture run collection.json --plugin-dir ./node_modules/@apiquest
 ```
+
+---
+
+## Plugin Management
+
+The CLI requires plugins to function. Plugins provide protocol support (http, graphql), authentication mechanisms (basic, bearer, oauth2), and value providers (secrets from vault files).
+
+### Plugin Discovery
+
+The CLI automatically discovers plugins from these locations (in order):
+
+1. **Development Mode** - Workspace packages directory (when running from source)
+2. **Global npm packages** - Global `node_modules/@apiquest/` directory
+3. **Custom Directories** - Paths specified via `--plugin-dir` flag (appended to auto-discovery)
+
+**Version Resolution:** When the same plugin is found in multiple directories, the CLI uses the highest semantic version. For example, if `@apiquest/plugin-http@1.2.0` is found globally and `@apiquest/plugin-http@1.3.0` is specified via `--plugin-dir`, version `1.3.0` will be used.
+
+### Required Core Plugins
+
+- **@apiquest/plugin-http** - HTTP/HTTPS protocol support (required for making requests)
+- **@apiquest/plugin-auth** - Authentication providers (basic, bearer, apikey, oauth2)
+
+### Optional Plugins
+
+- **@apiquest/plugin-vault-file** - File-based secrets management
+- **@apiquest/plugin-graphql** - GraphQL query support
+
+### Using --plugin-dir Flag
+
+The `--plugin-dir` flag allows you to specify additional plugin directories. It's repeatable and appends to auto-discovered paths.
+
+```bash
+# Single plugin directory
+fracture run collection.json --plugin-dir ./node_modules/@apiquest
+
+# Multiple plugin directories
+fracture run collection.json \
+  --plugin-dir ./node_modules/@apiquest \
+  --plugin-dir ./custom-plugins
+
+# In package.json
+{
+  "scripts": {
+    "test": "fracture run tests/api.json --plugin-dir ./node_modules/@apiquest"
+  }
+}
+```
+
+### Installation Strategies
+
+#### Strategy 1: Global Plugins (Shared across all projects)
+
+```bash
+# Install CLI globally
+npm install -g @apiquest/fracture
+
+# Install plugins globally
+npm install -g @apiquest/plugin-http @apiquest/plugin-auth @apiquest/plugin-vault-file
+
+# Run from any project
+fracture run collection.json
+```
+
+**Pros:** Install once, use everywhere. Simple. Shared with desktop app.
+**Cons:** System-level dependency. Version conflicts between projects.
+
+#### Strategy 2: Project-Local Plugins (Per-project dependencies)
+
+```bash
+# Install as dev dependencies
+npm install --save-dev @apiquest/fracture \
+  @apiquest/plugin-http \
+  @apiquest/plugin-auth \
+  @apiquest/plugin-vault-file
+
+# Run with plugin-dir flag
+npx fracture run collection.json --plugin-dir ./node_modules/@apiquest
+
+# Or in package.json
+{
+  "scripts": {
+    "test:api": "fracture run tests/api.json --plugin-dir ./node_modules/@apiquest"
+  }
+}
+```
+
+**Pros:** Project-isolated. Version per project. Works in CI/CD. No global installs.
+**Cons:** Repeated across projects. Need to specify `--plugin-dir`.
+
+#### Strategy 3: Hybrid (Global CLI, Local Plugins)
+
+```bash
+# CLI installed globally
+npm install -g @apiquest/fracture
+
+# Plugins in project
+npm install --save-dev @apiquest/plugin-http @apiquest/plugin-auth
+
+# Run with plugin-dir
+fracture run collection.json --plugin-dir ./node_modules/@apiquest
+```
+
+**Pros:** Best of both. Global CLI. Project-specific plugin versions.
+**Cons:** Need to specify `--plugin-dir` (can be in package.json script).
+
+### CI/CD Setup
+
+```dockerfile
+# Dockerfile - Strategy 1 (Global)
+FROM node:20-alpine
+RUN npm install -g @apiquest/fracture \
+    @apiquest/plugin-http \
+    @apiquest/plugin-auth
+
+WORKDIR /app
+COPY . .
+CMD ["fracture", "run", "tests/api.json"]
+```
+
+```dockerfile
+# Dockerfile - Strategy 2 (Local)
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+CMD ["npx", "fracture", "run", "tests/api.json", "--plugin-dir", "./node_modules/@apiquest"]
+```
+
+```yaml
+# GitHub Actions - Strategy 2 (Local, Recommended)
+- name: Install dependencies
+  run: npm ci
+
+- name: Run API Tests
+  run: npx fracture run tests/api.json --plugin-dir ./node_modules/@apiquest -e prod
+```
+
+### Plugin Commands
+
+The CLI includes built-in plugin management commands:
+
+```bash
+# Install plugins globally
+fracture plugin install http auth vault-file
+
+# List installed plugins
+fracture plugin list
+
+# See available plugins in npm registry
+fracture plugin available
+
+# Update plugins
+fracture plugin update
+
+# Remove plugins
+fracture plugin remove http
+```
+
+**Note:** These commands manage **global** npm packages only. For project-local plugins, use `npm install --save-dev`.
 
 ---
 

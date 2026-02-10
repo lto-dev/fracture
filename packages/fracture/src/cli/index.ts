@@ -42,6 +42,7 @@ interface CLIOptions {
   strictMode?: boolean;
   reporters?: string;
   out?: string;
+  pluginsDir?: string[];
 }
 
 /**
@@ -145,6 +146,8 @@ program
   .option('--log-level <level>', 'Log level: error, warn, info, debug, trace (default: info)')
   // Validation & Testing
   .option('--no-strict-mode', 'Disable strict validation mode')
+  // Plugins
+  .option('--plugin-dir <path>', 'Plugin directory to scan (repeatable, appended to auto-discovered paths)', collectArray, [] as string[])
   // Configuration
   .option('--config <file>', 'Load options from config file')
   .action(async (collectionPath: string, cliOptions: CLIOptions) => {
@@ -198,6 +201,11 @@ program
 
       // Get plugin directories for auto-discovery
       const pluginDirs = getPluginDirectories();
+      
+      // Append user-specified plugin directories (if any)
+      if (options.pluginsDir !== undefined && options.pluginsDir.length > 0) {
+        pluginDirs.push(...options.pluginsDir);
+      }
       
       // Convert string log level to LogLevel enum
       let logLevel: LogLevel | undefined;
@@ -374,6 +382,10 @@ function collectKeyValue(value: string, previous: Record<string, string>): Recor
     throw new Error(`Invalid key=value format: ${value}`);
   }
   return { ...previous, [key.trim()]: val.trim() };
+}
+
+function collectArray(value: string, previous: string[]): string[] {
+  return [...previous, value];
 }
 
 function parseCSV(content: string): IterationData[] {

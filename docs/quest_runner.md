@@ -10,7 +10,7 @@
 
 **NPM Package:** `@apiquest/fracture`
 **Language:** TypeScript
-**Runtime:** Node.js 18+
+**Runtime:** Node.js 20+ (LTS)
 **License:** AGPL-3.0-or-later OR Commercial
 
 ---

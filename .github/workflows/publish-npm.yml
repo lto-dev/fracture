@@ -1,0 +1,103 @@
+name: Publish to NPM
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on version tags like v1.0.0, v1.2.3, etc.
+
+permissions:
+  contents: read
+  
+jobs:
+  test:
+    name: Build, Test, and Validate
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --immutable
+      
+      - name: Run linter
+        run: yarn lint
+      
+      - name: Type check
+        run: yarn typecheck
+      
+      - name: Build all packages
+        run: yarn build
+      
+      - name: Run tests
+        run: yarn test
+
+  publish:
+    name: Publish Packages
+    needs: test
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install dependencies
+        run: yarn install --immutable
+      
+      - name: Build all packages
+        run: yarn build
+      
+      - name: Publish @apiquest/types
+        working-directory: ./packages/types
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: false
+      
+      - name: Publish @apiquest/fracture
+        working-directory: ./packages/fracture
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: false
+      
+      - name: Publish @apiquest/plugin-http
+        working-directory: ./packages/plugin-http
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: false
+      
+      - name: Publish @apiquest/plugin-auth
+        working-directory: ./packages/plugin-auth
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: false
+      
+      - name: Publish @apiquest/plugin-vault-file
+        working-directory: ./packages/plugin-vault-file
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: false
+      
+      - name: Publish @apiquest/plugin-graphql
+        working-directory: ./packages/plugin-graphql
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: false
