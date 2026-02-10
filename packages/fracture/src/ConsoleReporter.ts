@@ -1,5 +1,3 @@
-// Console Reporter - Pretty CLI output for quest runs
-
 import type {
   IReporter,
   Collection,

@@ -1,8 +1,3 @@
-/**
- * Request Filter - Filters requests based on CLI --filter option
- * Standalone implementation without ExecutionTree dependency
- */
-
 import type { Collection, CollectionItem, Folder, Request, PathType } from '@apiquest/types';
 
 export interface FilterOptions {

@@ -1,6 +1,3 @@
-// Collection Analyzer - Scans collection to determine required plugins
-// Extracted to improve code organization and enable selective plugin loading
-
 import type { Collection, Request, CollectionItem, Auth, Variable } from '@apiquest/types';
 import { isNullOrEmpty, hasItems, isValidAuth, isValidAuthType } from './utils.js';
 import { Logger } from './Logger.js';

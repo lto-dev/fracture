@@ -1,7 +1,3 @@
-/**
- * CookieJar using tough-cookie library for RFC-compliant cookie handling
- */
-
 import { CookieJar as ToughCookieJar, Cookie } from 'tough-cookie';
 import type { ICookieJar, CookieJarOptions, Cookie as ICookie, CookieSetOptions } from '@apiquest/types';
 

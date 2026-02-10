@@ -1,6 +1,3 @@
-// Utility functions for variable handling and validation
-// Centralized to avoid duplication across the codebase
-
 import type { Variable, Auth, CollectionItem } from '@apiquest/types';
 
 /**

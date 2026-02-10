@@ -1,7 +1,3 @@
-/**
- * DagScheduler coordinates serialized scripts with parallel request I/O.
- */
-
 import { EventEmitter } from 'events';
 import type { TaskNode } from './TaskGraph.js';
 import type { ExecutionContext, RequestResult, Request, Folder, ScriptResult } from '@apiquest/types';
