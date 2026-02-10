@@ -37,14 +37,14 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
       
+      - name: Build all packages
+        run: yarn build
+      
       - name: Run linter
         run: yarn lint
       
       - name: Type check
         run: yarn typecheck
-      
-      - name: Build all packages
-        run: yarn build
       
       - name: Run tests
         run: yarn test
