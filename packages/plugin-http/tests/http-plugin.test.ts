@@ -56,7 +56,8 @@ function createMockContext(): ExecutionContext {
     executionHistory: [],
     options: {},
     cookieJar: new TestCookieJar(),
-    protocolPlugin: httpPlugin
+    protocolPlugin: httpPlugin,
+    abortSignal: new AbortController().signal
   };
 }
 

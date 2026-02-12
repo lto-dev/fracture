@@ -127,10 +127,10 @@ export const ssePlugin: IProtocolPlugin = {
 
       try {
         // Use fetch with streaming which is more universally supported in Node.js
-        const signal = context.abortSignal || controller.signal;
+        const signal = context.abortSignal ?? controller.signal;
 
         // Handle abort signal
-        if (context.abortSignal) {
+        if (context.abortSignal !== undefined && context.abortSignal !== null) {
           context.abortSignal.addEventListener('abort', () => {
             controller.abort();
             clearTimeout(timeoutId);
@@ -173,7 +173,7 @@ export const ssePlugin: IProtocolPlugin = {
             return;
           }
 
-          if (!response.body) {
+          if (response.body === null || response.body === undefined) {
             clearTimeout(timeoutId);
             logger?.error('SSE response has no body');
             resolve({
@@ -191,20 +191,31 @@ export const ssePlugin: IProtocolPlugin = {
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
           let buffer = '';
+          
+          // Temporary message fields that get compiled when we hit an empty line
+          let currentEventType: string | undefined;
+          let currentEventId: string | undefined;
+          let currentRetry: number | undefined;
+          const currentDataLines: string[] = [];
 
-          const processLine = async (line: string) => {
-            if (line.startsWith('data:')) {
-              const data = line.slice(5).trim();
-              const message: SSEMessage = { data };
+          const dispatchCurrentMessage = async (): Promise<void> => {
+            if (currentDataLines.length > 0) {
+              const message: SSEMessage = {
+                data: currentDataLines.join('\n'),
+                event: currentEventType,
+                id: currentEventId,
+                retry: currentRetry
+              };
+              
               messages.push(message);
               messageCount++;
-              
-              logger?.trace('SSE message received', { messageCount, data: data.slice(0, 100) });
-              
+
+              logger?.trace('SSE message received', { messageCount, data: message.data.slice(0, 100) });
+
               // Emit onMessage event
-              if (emitEvent) {
+              if (emitEvent !== undefined && emitEvent !== null) {
                 try {
-                  await emitEvent('onMessage', { 
+                  await emitEvent('onMessage', {
                     index: messageCount,
                     data: message
                   });
@@ -212,44 +223,58 @@ export const ssePlugin: IProtocolPlugin = {
                   logger?.error('SSE onMessage event error', { error: err instanceof Error ? err.message : String(err) });
                 }
               }
+
+              // Reset temporary fields
+              currentEventType = undefined;
+              currentEventId = undefined;
+              currentRetry = undefined;
+              currentDataLines.length = 0;
+            }
+          };
+
+          const processLine = async (line: string): Promise<void> => {
+            // Empty line signals the end of an event
+            if (line === '') {
+              await dispatchCurrentMessage();
+            } else if (line.startsWith('data:')) {
+              // Can have multiple data lines
+              const data = line.slice(5);
+              // Trim only the leading space if present (per spec)
+              currentDataLines.push(data.startsWith(' ') ? data.slice(1) : data);
             } else if (line.startsWith('event:')) {
-              const lastMessage = messages[messages.length - 1];
-              if (lastMessage) {
-                lastMessage.event = line.slice(6).trim();
-              }
+              currentEventType = line.slice(6).trim();
             } else if (line.startsWith('id:')) {
-              const lastMessage = messages[messages.length - 1];
-              if (lastMessage) {
-                lastMessage.id = line.slice(3).trim();
-              }
+              currentEventId = line.slice(3).trim();
             } else if (line.startsWith('retry:')) {
-              const lastMessage = messages[messages.length - 1];
-              if (lastMessage) {
-                lastMessage.retry = parseInt(line.slice(6).trim(), 10);
+              const retryValue = parseInt(line.slice(6).trim(), 10);
+              if (!isNaN(retryValue)) {
+                currentRetry = retryValue;
               }
             }
+            // Lines starting with ':' are comments and should be ignored
+            // Other lines are ignored as well per spec
           };
 
           try {
             while (true) {
-              const { done, value } = await reader.read();
+              const result = await reader.read();
+              const done = result.done;
+              const value: Uint8Array | undefined = result.value as Uint8Array | undefined;
               
               if (done) {
                 // Process remaining buffer
-                if (buffer.trim()) {
-                  const lines = buffer.split('\n');
-                  for (const line of lines) {
-                    if (line.trim()) {
-                      await processLine(line);
-                    }
-                  }
+                const lines = buffer.split('\n');
+                for (const line of lines) {
+                  await processLine(line);
                 }
+                // Flush any pending message
+                await dispatchCurrentMessage();
                 
                 clearTimeout(timeoutId);
                 logger?.debug('SSE stream complete', { messageCount, duration: Date.now() - startTime });
                 
                 // Emit onComplete event
-                if (emitEvent) {
+                if (emitEvent !== undefined && emitEvent !== null) {
                   try {
                     await emitEvent('onComplete', { messageCount, messages });
                   } catch (err) {
@@ -270,16 +295,16 @@ export const ssePlugin: IProtocolPlugin = {
               }
 
               // Decode chunk and add to buffer
-              buffer += decoder.decode(value, { stream: true });
+              if (value !== undefined) {
+                buffer += decoder.decode(value, { stream: true });
+              }
               
               // Process complete lines
               const lines = buffer.split('\n');
-              buffer = lines.pop() || ''; // Keep incomplete line in buffer
+              buffer = lines.pop() ?? ''; // Keep incomplete line in buffer
               
               for (const line of lines) {
-                if (line.trim()) {
-                  await processLine(line);
-                }
+                await processLine(line);
               }
             }
           } catch (err) {
@@ -302,7 +327,7 @@ export const ssePlugin: IProtocolPlugin = {
               logger?.error('SSE stream error', { error: err instanceof Error ? err.message : String(err) });
               
               // Emit onError event
-              if (emitEvent) {
+              if (emitEvent !== undefined && emitEvent !== null) {
                 try {
                   await emitEvent('onError', { error: err instanceof Error ? err.message : String(err) });
                 } catch (emitErr) {
@@ -327,7 +352,7 @@ export const ssePlugin: IProtocolPlugin = {
           logger?.error('SSE fetch error', { error: err instanceof Error ? err.message : String(err) });
           
           // Emit onError event
-          if (emitEvent) {
+          if (emitEvent !== undefined && emitEvent !== null) {
             emitEvent('onError', { error: err instanceof Error ? err.message : String(err) }).catch((emitErr) => {
               logger?.error('SSE onError event error', { error: emitErr instanceof Error ? emitErr.message : String(emitErr) });
             });
