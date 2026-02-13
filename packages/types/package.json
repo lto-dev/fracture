@@ -5,6 +5,11 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+    "repository": {
+    "type": "git",
+    "url": "https://github.com/hh-apiquest/fracture.git",
+    "directory": "packages/types"
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch"
