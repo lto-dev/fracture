@@ -483,7 +483,7 @@ describe('Section 31: Filtering, Conditions, and Dependencies', () => {
       expect(result.requestResults[1].tests[0].passed).toBe(true);
     });
 
-    test('--exclude-deps skips dependencies', async () => {
+    test('--filter-exclude-deps skips dependencies', async () => {
       const collection: Collection = {
         info: { id: 'col-10', name: 'Exclude Deps' },
         protocol: 'mock-options',
@@ -735,7 +735,7 @@ describe('Section 31: Filtering, Conditions, and Dependencies', () => {
       expect(result.requestResults[1].tests[0].passed).toBe(true);
     });
 
-    test('Filtering with exclude-deps and condition', async () => {
+    test('Filtering with filter-exclude-deps and condition', async () => {
       const collection: Collection = {
         info: { id: 'col-17', name: 'Filter No Deps' },
         protocol: 'mock-options',

@@ -154,7 +154,7 @@ The CLI exposes the following core options used by the runner:
 - `-d, --data <file>` — iteration data (CSV or JSON)
 - `-n, --iterations <count>` — limit iterations
 - `--filter <pattern>` — regex filter by request path
-- `--exclude-deps` — exclude dependencies when filtering
+- `--filter-exclude-deps` — exclude dependencies when filtering
 - `--parallel` — enable parallel execution
 - `--concurrency <number>` — max concurrent requests
 - `--bail` — stop on first failing test

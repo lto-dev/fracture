@@ -18,7 +18,7 @@ interface CLIOptions {
   data?: string;
   iterations?: number;
   filter?: string;
-  excludeDeps?: boolean;
+  filterExcludeDeps?: boolean;
   parallel?: boolean;
   concurrency?: number;
   bail?: boolean;
@@ -112,7 +112,7 @@ program
   .option('-n, --iterations <count>', 'Limit number of iterations', parseInt)
   // Filtering & Selection
   .option('--filter <pattern>', 'Filter requests by path using regex pattern')
-  .option('--exclude-deps', 'Exclude dependencies when filtering')
+  .option('--filter-exclude-deps', 'Exclude dependencies when filtering')
   // Execution Control
   .option('--parallel', 'Enable parallel execution')
   .option('--concurrency <number>', 'Max concurrent requests', parseInt)
@@ -282,7 +282,7 @@ program
         data: iterationData,
         iterations: options.iterations,
         filter: options.filter,
-        excludeDeps: options.excludeDeps,
+        excludeDeps: options.filterExcludeDeps,
         
         // RuntimeOptions - Execution
         execution: {

@@ -938,7 +938,7 @@ fracture run <collection.json> [options]
   -g, --global <key=value>     Global variables
   --iterations <count>         Limit iterations
   --filter <regex>             Filter requests by path (regex against full path)
-  --exclude-deps               Exclude dependencies when filtering
+  --filter-exclude-deps        Exclude dependencies when filtering
   --log-level <level>          error|warn|info|debug|trace
   --strict-mode <true|false>   Enable/disable strict validation (default: true)
   --bail                       Stop on first failure
@@ -1273,7 +1273,7 @@ fracture run collection.json --filter "^(?!.*Slow).*"
 fracture run collection.json --filter "request:/Critical/"
 
 # Exclude dependencies (run only filtered requests)
-fracture run collection.json --filter "request:/Critical/" --exclude-deps
+fracture run collection.json --filter "request:/Critical/" --filter-exclude-deps
 ```
 
 ### Memory Management

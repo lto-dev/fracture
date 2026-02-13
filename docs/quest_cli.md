@@ -257,7 +257,7 @@ fracture run <collection> [options]
 ```bash
     --filter <pattern>            Filter by path using regex pattern (JavaScript RegExp)
                                   Matches against full path: "request:/FolderA/RequestName"
-    --exclude-deps                Exclude dependencies when filtering
+    --filter-exclude-deps         Exclude dependencies when filtering
 ```
 
 #### Execution Control
@@ -442,7 +442,7 @@ fracture run api-tests.json --filter "request:/(Auth|Users)/"
 fracture run api-tests.json --filter "^(?!.*Slow Tests).*"
 
 # Filter with dependencies excluded
-fracture run api-tests.json --filter "request:/Critical/" --exclude-deps
+fracture run api-tests.json --filter "request:/Critical/" --filter-exclude-deps
 ```
 
 ### Reporting
