@@ -55,6 +55,9 @@ jobs:
           node-version: '20.x'
           cache: 'yarn'
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Verify npm version
+        run: npm --version
       
       - name: Install dependencies
         run: yarn install --immutable
@@ -62,15 +65,56 @@ jobs:
       - name: Build all packages
         run: yarn build
       
-      - name: Debug OIDC
+      - name: Debug Environment
         run: |
-          echo "ACTIONS_ID_TOKEN_REQUEST_URL: $ACTIONS_ID_TOKEN_REQUEST_URL"
+          echo "=== Node/npm versions ==="
+          node --version
+          npm --version
+          
+          echo ""
+          echo "=== OIDC Token Info ==="
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:-not set}"
           echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN exists: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN != '' }}"
+          
+          echo ""
+          echo "=== GitHub Context ==="
+          echo "Repository: ${{ github.repository }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Job: ${{ github.job }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "Run Number: ${{ github.run_number }}"
+          echo "Actor: ${{ github.actor }}"
+          
+          echo ""
+          echo "=== npm Configuration ==="
+          npm config list
+          
+          echo ""
+          echo "=== Package Info ==="
+          cat packages/types/package.json | grep -E '"name"|"version"'
+          
+          echo ""
+          echo "=== Registry Check ==="
+          npm view @apiquest/types versions --json || echo "Package not found or network error"
 
-      # @apiquest/types
+      - name: Test OIDC Token Request
+        run: |
+          if [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ]; then
+            echo "Attempting to request OIDC token..."
+            curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+                "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=npm" \
+                -v 2>&1 | head -20
+          else
+            echo "ACTIONS_ID_TOKEN_REQUEST_URL not available"
+          fi
+
+      - name: Check npm Provenance Support
+        run: |
+          npm help publish | grep -A 5 provenance || echo "No provenance info in help"
+
       - name: Publish @apiquest/types
         working-directory: ./packages/types
-        run: npm publish --provenance --access public
+        run: npm publish --provenance --access public --loglevel verbose
       
       # Commented out for testing
       # - name: Publish @apiquest/fracture
