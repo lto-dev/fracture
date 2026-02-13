@@ -1,6 +1,6 @@
 {
   "name": "@apiquest/types",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Shared TypeScript types for ApiQuest",
   "type": "module",
   "main": "dist/index.js",
