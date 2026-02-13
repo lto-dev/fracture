@@ -54,7 +54,10 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'yarn'
-          # registry-url: 'https://registry.npmjs.org'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Update npm to latest
+        run: npm install -g npm@latest
 
       - name: Verify npm version
         run: npm --version
