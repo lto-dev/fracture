@@ -1,0 +1,69 @@
+{
+  "$schema": "https://apiquest.net/schemas/collection-v1.0.json",
+  "info": {
+    "id": "external-lib-test",
+    "name": "External Libraries Test",
+    "version": "1.0.0",
+    "description": "Test collection demonstrating external library loading (file and npm sources)"
+  },
+  "protocol": "http",
+  "options": {
+    "libraries": [
+      {
+        "name": "myutils",
+        "source": {
+          "type": "file",
+          "path": "./examples/myutils.cjs"
+        }
+      },
+      {
+        "name": "validator",
+        "source": {
+          "type": "npm",
+          "package": "validator"
+        },
+        "version": "^13.11.0"
+      },
+      {
+        "name": "axios",
+        "source": {
+          "type": "npm",
+          "package": "axios"
+        },
+        "version": "^1.6.0"
+      }
+    ]
+  },
+  "items": [
+    {
+      "type": "request",
+      "id": "test-file-library",
+      "name": "Test File Library",
+      "data": {
+        "method": "GET",
+        "url": "https://jsonplaceholder.typicode.com/posts/1"
+      },
+      "postRequestScript": "const utils = require('myutils');\n\nquest.test('File library loaded', () => {\n  expect(utils).to.exist;\n  expect(utils.formatTitle).to.be.a('function');\n});\n\nquest.test('File library works', () => {\n  const title = utils.formatTitle('hello world');\n  expect(title).to.equal('HELLO WORLD');\n});"
+    },
+    {
+      "type": "request",
+      "id": "test-npm-library",
+      "name": "Test NPM Library (validator)",
+      "data": {
+        "method": "GET",
+        "url": "https://jsonplaceholder.typicode.com/posts/2"
+      },
+      "postRequestScript": "const validator = require('validator');\n\nquest.test('Validator library loaded', () => {\n  expect(validator).to.exist;\n  expect(validator.isEmail).to.be.a('function');\n});\n\nquest.test('Validator works', () => {\n  expect(validator.isEmail('test@example.com')).to.be.true;\n  expect(validator.isEmail('invalid')).to.be.false;\n});"
+    },
+    {
+      "type": "request",
+      "id": "test-axios",
+      "name": "Test Axios Library",
+      "data": {
+        "method": "GET",
+        "url": "https://jsonplaceholder.typicode.com/posts/3"
+      },
+      "postRequestScript": "const axios = require('axios');\n\nquest.test('Axios library loaded', () => {\n  expect(axios).to.exist;\n  expect(axios.get).to.be.a('function');\n});\n\nquest.test('Axios can make requests', async () => {\n  const response = await axios.get('https://jsonplaceholder.typicode.com/posts/4');\n  expect(response.status).to.equal(200);\n  expect(response.data).to.have.property('id', 4);\n});"
+    }
+  ]
+}

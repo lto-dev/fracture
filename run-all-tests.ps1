@@ -143,6 +143,16 @@ $test12Result = $LASTEXITCODE
 $testResults += @{Name="Network Error Handling"; Expected=4; ExitCode=$test12Result}
 Write-Host ""
 
+# Test 13: External Libraries
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "Test 13: External Libraries (--allow-external-libraries)" -ForegroundColor Cyan
+Write-Host "Expected: 8 tests (all passing)" -ForegroundColor Gray
+Write-Host "========================================" -ForegroundColor Cyan
+node packages/fracture/bin/cli.js run examples/external-libraries-test.json --allow-external-libraries
+$test13Result = $LASTEXITCODE
+$testResults += @{Name="External Libraries"; Expected=8; ExitCode=$test13Result}
+Write-Host ""
+
 # Summary
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "           TEST SUMMARY                 " -ForegroundColor Cyan

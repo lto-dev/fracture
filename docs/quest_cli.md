@@ -328,6 +328,13 @@ fracture run <collection> [options]
     --no-strict-mode              Disable strict validation mode
 ```
 
+#### Plugins & Libraries
+```bash
+    --install-plugins             Auto-install missing plugins globally via npm
+    --allow-external-libraries    Enable loading of external libraries (npm/file/cdn)
+                                   SECURITY WARNING: Only use with trusted libraries
+```
+
 #### Configuration
 ```bash
     --config <file>               Load options from config file
@@ -647,10 +654,9 @@ fracture run collection.json -r junit -o ./test-results
 |------|---------|
 | 0 | All tests passed |
 | 1 | One or more tests failed |
-| 2 | Script error (syntax, runtime) |
-| 3 | Invalid arguments/options/Pre-run validation failed |
-| 4 | File not found |
-| 5 | Network error |
+| 2 | Configuration error (invalid options, plugin installation failed) |
+| 3 | Pre-run validation failed (collection schema, script syntax) |
+| 4 | Runtime error (file not found, JSON parse error, network error, plugin command failure, etc.) |
 
 **Usage in CI/CD:**
 ```bash
@@ -884,6 +890,76 @@ const result = await runner.run(collection, options);
 ```
 
 For more information on programmatic usage, see the [Quest Runner documentation](quest_runner.md).
+
+---
+
+## Plugin & Library Management
+
+### Auto-Installing Plugins
+
+Automatically install missing plugins globally:
+
+```bash
+# Analyzes collection and installs any missing plugins
+fracture run collection.json --install-plugins
+```
+
+Plugins are installed globally via `npm install -g` and available for all collections.
+
+**Behavior:**
+- Analyzes collection requirements (protocols, auth types, value providers)
+- Compares against installed plugins
+- Installs only missing plugins
+- Exits with error code 2 if installation fails
+
+### External Libraries
+
+Enable loading of external libraries from npm, local files, or CDN:
+
+```bash
+# Enable external libraries (required for collections that define libraries)
+fracture run collection.json --allow-external-libraries
+
+# Security error if flag not provided:
+# Error: Collection defines external libraries but --allow-external-libraries flag is not enabled
+```
+
+**Collection Example:**
+```json
+{
+  "options": {
+    "libraries": [
+      {
+        "name": "validator",
+        "source": { "type": "npm", "package": "validator" },
+        "version": "^13.11.0"
+      },
+      {
+        "name": "myutils",
+        "source": { "type": "file", "path": "./helpers.cjs" }
+      }
+    ]
+  }
+}
+```
+
+**Script Usage:**
+```javascript
+// In postRequestScript
+const validator = require('validator');
+const utils = require('myutils');
+
+quest.test('Valid email', () => {
+  expect(validator.isEmail('test@example.com')).to.be.true;
+});
+```
+
+**Library Sources:**
+- **npm**: Installed to temporary directory per session
+- **file**: Loaded from path relative to collection file
+- **cdn**: Downloaded and cached
+
+**Security:** External libraries execute in VM sandbox but should only be loaded from trusted sources.
 
 ---
 

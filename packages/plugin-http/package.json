@@ -59,8 +59,7 @@
           "apikey",
           "digest",
           "ntlm"
-        ],
-        "strictAuthList": false
+        ]
       }
     }
   }

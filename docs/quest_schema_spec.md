@@ -73,7 +73,8 @@ interface RuntimeOptions {
   // Log level control
   logLevel?: 'error' | 'warn' | 'info' | 'debug' | 'trace';  // Default: 'info'
   
-  // External libraries (builtin libraries always available)
+  // External libraries (requires --allow-external-libraries flag)
+  // Built-in libraries (lodash, moment, chai) always available via require()
   libraries?: ExternalLibrary[];
   
   // Explicit cookies to send
@@ -134,6 +135,15 @@ type LibrarySource =
   | { type: "npm"; package: string }      // npm package
   | { type: "cdn"; url: string }          // CDN URL  
   | { type: "file"; path: string };       // Local file path
+
+// Example usage:
+// "libraries": [
+//   { "name": "validator", "source": { "type": "npm", "package": "validator" }, "version": "^13.11.0" },
+//   { "name": "myutils", "source": { "type": "file", "path": "./utils.cjs" } },
+//   { "name": "remote", "source": { "type": "cdn", "url": "https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js" } }
+// ]
+// Script usage: const validator = require('validator');
+// IMPORTANT: Requires --allow-external-libraries CLI flag
 
 interface Cookie {
   name: string;

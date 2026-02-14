@@ -24,7 +24,7 @@ export class PluginLoader {
   ): Promise<void> {
     const needed = this.filterNeededPlugins(resolved, requirements);
     
-    this.logger.info(`Loading ${needed.length} required plugins (${resolved.length} available)`);
+    this.logger.debug(`Loading ${needed.length} required plugins (${resolved.length} available)`);
     
     const loadPromises = needed.map(plugin =>
       this.loadPlugin(plugin).catch(err => {
@@ -60,10 +60,13 @@ export class PluginLoader {
           isNeeded = true;
         }
       } else if (plugin.type === 'value') {
-        // Check if collection uses this value provider
-        const provider = plugin.provider;
-        if (provider !== null && provider !== undefined && provider !== '' && requirements.valueProviders.has(provider)) {
-          isNeeded = true;
+        // Check if collection uses any of the value types this plugin provides
+        const valueTypes = plugin.valueTypes ?? [];
+        for (const valueType of valueTypes) {
+          if (requirements.valueProviders.has(valueType)) {
+            isNeeded = true;
+            break;
+          }
         }
       }
 
@@ -120,7 +123,7 @@ export class PluginLoader {
       }
     } else if (plugin.type === 'value') {
       this.pluginManager.registerVariableProvider(exported as IValueProviderPlugin);
-      this.logger.debug(`Registered value provider: ${plugin.provider ?? ''}`);
+      this.logger.debug(`Registered value provider: ${plugin.valueTypes?.join(', ') ?? ''}`);
     }
   }
 }

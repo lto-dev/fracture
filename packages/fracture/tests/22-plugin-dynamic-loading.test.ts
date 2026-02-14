@@ -903,7 +903,7 @@ describe('Section 22: Dynamic Plugin Loading', () => {
           runtime: ['fracture'],
           capabilities: {
             provides: {
-              provider: 'vault:custom'
+              valueTypes: ['vault:custom']
             }
           }
         }

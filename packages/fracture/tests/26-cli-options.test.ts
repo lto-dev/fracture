@@ -378,5 +378,72 @@ describe('Section 26: CLI Options', () => {
       expect(result.passedTests).toBe(3);
     });
   });
+
+  describe('26.7 --allow-external-libraries Option', () => {
+    test('Parses allowExternalLibraries: true correctly', async () => {
+      const collection: Collection = {
+        info: { id: 'lib-opt-1', name: 'Library Option Test', version: '1.0.0' },
+        protocol: 'mock-options',
+        options: {
+          libraries: [
+            { name: 'testlib', source: { type: 'npm', package: 'lodash' } }
+          ]
+        },
+        items: [{
+          type: 'request',
+          id: 'req-1',
+          name: 'Test',
+          data: { method: 'GET', url: `${serverUrl}/status/200` }
+        }]
+      };
+
+      // This should NOT throw because allowExternalLibraries is true
+      await expect(runner.run(collection, { allowExternalLibraries: true })).resolves.toBeDefined();
+    }, 10000); // npm install can take 4-5 seconds
+
+   test('Rejects when allowExternalLibraries: false', async () => {
+      const collection: Collection = {
+        info: { id: 'lib-opt-2', name: 'Library Reject Test', version: '1.0.0' },
+        protocol: 'mock-options',
+        options: {
+          libraries: [
+            { name: 'testlib', source: { type: 'npm', package: 'lodash' } }
+          ]
+        },
+        items: [{
+          type: 'request',
+          id: 'req-1',
+          name: 'Test',
+          data: { method: 'GET', url: `${serverUrl}/status/200` }
+        }]
+      };
+
+      // Should reject with security error
+      await expect(runner.run(collection, { allowExternalLibraries: false }))
+        .rejects.toThrow('--allow-external-libraries');
+    });
+
+    test('Defaults to undefined (rejects libraries)', async () => {
+      const collection: Collection = {
+        info: { id: 'lib-opt-3', name: 'Library Default Test', version: '1.0.0' },
+        protocol: 'mock-options',
+        options: {
+          libraries: [
+            { name: 'testlib', source: { type: 'npm', package: 'lodash' } }
+          ]
+        },
+        items: [{
+          type: 'request',
+          id: 'req-1',
+          name: 'Test',
+          data: { method: 'GET', url: `${serverUrl}/status/200` }
+        }]
+      };
+
+      // Should reject when flag not provided at all
+      await expect(runner.run(collection))
+        .rejects.toThrow('--allow-external-libraries');
+    });
+  });
 });
 

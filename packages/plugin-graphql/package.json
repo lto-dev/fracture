@@ -53,8 +53,7 @@
           "basic",
           "oauth2",
           "apikey"
-        ],
-        "strictAuthList": false
+        ]
       }
     }
   }

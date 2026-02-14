@@ -43,6 +43,8 @@ interface CLIOptions {
   reporters?: string;
   out?: string;
   pluginsDir?: string[];
+  installPlugins?: boolean;
+  allowExternalLibraries?: boolean;
 }
 
 /**
@@ -148,6 +150,9 @@ program
   .option('--no-strict-mode', 'Disable strict validation mode')
   // Plugins
   .option('--plugin-dir <path>', 'Plugin directory to scan (repeatable, appended to auto-discovered paths)', collectArray, [] as string[])
+  .option('--install-plugins', 'Automatically install missing plugins')
+  // External Libraries
+  .option('--allow-external-libraries', 'Allow loading external libraries from npm/file/cdn (security risk)')
   // Configuration
   .option('--config <file>', 'Load options from config file')
   .action(async (collectionPath: string, cliOptions: CLIOptions) => {
@@ -205,6 +210,41 @@ program
       // Append user-specified plugin directories (if any)
       if (options.pluginsDir !== undefined && options.pluginsDir.length > 0) {
         pluginDirs.push(...options.pluginsDir);
+      }
+      
+      // Handle --install-plugins flag
+      if (options.installPlugins === true) {
+        const { PluginInstaller } = await import('./plugin-installer.js');
+        const { CollectionAnalyzer } = await import('../CollectionAnalyzer.js');
+        const { PluginResolver } = await import('../PluginResolver.js');
+        
+        console.log('Analyzing plugin requirements...');
+        
+        // Analyze what plugins are needed
+        const analyzer = new CollectionAnalyzer();
+        const requirements = analyzer.analyzeRequirements(collection);
+        
+        // Check what's already available
+        const resolver = new PluginResolver();
+        const resolved = await resolver.scanDirectories(pluginDirs);
+        
+        // Find missing plugins
+        const missing = await PluginInstaller.findMissingPlugins(requirements, resolved);
+        
+        if (missing.size > 0) {
+          console.log(`Installing plugins: ${Array.from(missing).join(', ')}`);
+          
+          const result = await PluginInstaller.installPlugins(missing);
+          
+          if (result.failed.length > 0) {
+            console.error('Failed to install:', result.failed.join(', '));
+            process.exit(2);
+          }
+          
+          console.log('Plugins installed\n');
+        } else {
+          console.log('All plugins available\n');
+        }
       }
       
       // Convert string log level to LogLevel enum
@@ -340,7 +380,10 @@ program
         ...(options.maxRedirects !== undefined ? { maxRedirects: options.maxRedirects } : {}),
         
         // RuntimeOptions - Validation
-        strictMode: options.strictMode !== false  // --no-strict-mode sets this to false, default is true
+        strictMode: options.strictMode !== false,  // --no-strict-mode sets this to false, default is true
+        
+        // RuntimeOptions - External Libraries
+        allowExternalLibraries: options.allowExternalLibraries === true
       };
       
       // Run collection

@@ -1,5 +1,4 @@
 // Core Types and Interfaces for @apiquest/types
-// Schema v1.0 - Updated 2026-01-05
 
 // ============================================================================
 // Collection & Items
@@ -415,6 +414,7 @@ export interface RunOptions extends Omit<RuntimeOptions, 'logLevel'> {
   filter?: string;              // Path-based regex filter
   excludeDeps?: boolean;        // Exclude dependencies when filtering
   signal?: AbortSignal;         // External abort signal
+  allowExternalLibraries?: boolean;  // Security flag: Allow loading external libraries (NOT in collection.options)
 }
 
 export interface RunResult {
@@ -460,6 +460,7 @@ export interface PluginPackageJson {
   name: string;
   version: string;
   main?: string;
+  description?: string;
   apiquest?: {
     runtime?: string[] | string;
     type: string;
@@ -467,7 +468,12 @@ export interface PluginPackageJson {
       provides?: {
         protocols?: string[];
         authTypes?: string[];
-        provider?: string;
+        valueTypes?: string[];
+        reportTypes?: string[];
+      };
+      supports?: {
+        authTypes?: string[];
+        strictAuthList?: boolean;
       };
     };
   };

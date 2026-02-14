@@ -9,7 +9,7 @@ export interface ResolvedPlugin {
   entryPoint: string;
   protocols?: string[];
   authTypes?: string[];
-  provider?: string;
+  valueTypes?: string[];
 }
 
 export class PluginResolver {
@@ -111,7 +111,7 @@ export class PluginResolver {
         entryPoint: fullEntryPath,
         protocols: provides.protocols,
         authTypes: provides.authTypes,
-        provider: provides.provider,
+        valueTypes: provides.valueTypes,
       };
 
       // Check for version conflicts

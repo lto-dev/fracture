@@ -1,6 +1,8 @@
 import vm from 'vm';
 import { expect } from 'chai';
-import _ from 'lodash';
+import * as chai from 'chai';
+import * as lodash from 'lodash';
+import * as moment from 'moment';
 import type { ExecutionContext, ScriptResult, TestResult } from '@apiquest/types';
 import { ScriptType } from '@apiquest/types';
 import { Logger } from './Logger.js';
@@ -18,9 +20,11 @@ export class ScriptEngine {
   private tests: TestResult[] = [];
   private consoleOutput: string[] = [];
   private logger: Logger;
+  private externalLibraries: Map<string, unknown> = new Map();
 
-  constructor(baseLogger?: Logger) {
+  constructor(baseLogger?: Logger, externalLibraries?: Map<string, unknown>) {
     this.logger = baseLogger?.createLogger('ScriptEngine') ?? new Logger('ScriptEngine');
+    this.externalLibraries = externalLibraries ?? new Map<string, unknown>();
   }
 
   /**
@@ -55,7 +59,6 @@ export class ScriptEngine {
       const sandbox = {
         quest: questAPI,
         expect,
-        _,
         console: this.createConsoleAPI(),
         require: this.createRequire(),
         setTimeout,
@@ -202,15 +205,21 @@ export class ScriptEngine {
    * Create minimal require function
    */
   private createRequire() {
+    const externalLibs = this.externalLibraries;
+    
+    const allowedModules: Record<string, unknown> = {
+      'chai': chai as unknown,
+      'lodash': lodash as unknown,
+      'moment': moment as unknown
+    };
+    
     return (moduleName: string) => {
-      const allowedModules: Record<string, unknown> = {
-        'chai': require('chai') as unknown,
-        'lodash': require('lodash') as unknown,
-        'moment': require('moment') as unknown
-      };
-
       if (moduleName in allowedModules) {
         return allowedModules[moduleName];
+      }
+      
+      if (externalLibs.has(moduleName)) {
+        return externalLibs.get(moduleName);
       }
 
       throw new Error(`Module '${moduleName}' is not allowed in scripts`);
