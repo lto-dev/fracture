@@ -1,6 +1,6 @@
 {
   "name": "@apiquest/plugin-graphql",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "GraphQL protocol plugin for ApiQuest",
   "type": "module",
   "main": "./dist/index.js",

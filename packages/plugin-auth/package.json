@@ -1,6 +1,6 @@
 {
   "name": "@apiquest/plugin-auth",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Authentication plugins for ApiQuest (Bearer, Basic, OAuth2, API Key)",
   "type": "module",
   "main": "dist/index.js",

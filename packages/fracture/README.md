@@ -50,6 +50,10 @@ fracture run ./collection.json \
 fracture run ./collection.json \
   --parallel \
   --concurrency 5
+
+# With external libraries (npm, file, or CDN)
+fracture run ./collection.json \
+  --allow-external-libraries
 ```
 
 ### Programmatic API
@@ -74,6 +78,7 @@ console.log(`Tests: ${result.passedTests}/${result.totalTests} passed`);
 - **Plugin architecture** - Support for HTTP, GraphQL, gRPC, WebSocket, SSE via plugins
 - **Collection-level iterations** - Data-driven testing with CSV/JSON files
 - **Event-based reporting** - Real-time progress events for custom reporters
+- **External libraries** - Load npm packages, local files, or CDN scripts (opt-in)
 
 ## Collection Schema
 
@@ -109,10 +114,93 @@ Collections are JSON files following the ApiQuest schema:
 }
 ```
 
+## CLI Options
+
+Key runtime options (see [full CLI reference](../../docs/quest_cli.md) for all options):
+
+```bash
+# Variables & Environment
+-g, --global <key=value>      Set global variable
+-e, --environment <file>      Environment file
+--env-var <key=value>         Set environment variable
+
+# Execution
+--parallel                    Enable parallel execution
+--concurrency <number>        Max concurrent requests
+--bail                        Stop on first test failure
+--delay <ms>                  Delay between requests
+--timeout <ms>                Request timeout
+
+# SSL/TLS
+--ssl-cert <path>             Client certificate (PEM)
+--ssl-key <path>              Client private key
+--insecure                    Disable SSL validation
+
+# Proxy
+--proxy <url>                 HTTP/HTTPS proxy
+--proxy-auth <user:pass>      Proxy credentials
+
+# Plugins & Libraries
+--install-plugins             Auto-install missing plugins
+--allow-external-libraries    Enable external libraries (npm/file/cdn)
+
+# Output
+--silent                      Suppress output
+--log-level <level>           error|warn|info|debug|trace
+--no-color                    Disable colors
+```
+
+**Exit Codes:**
+- `0` — All tests passed
+- `1` — One or more tests failed
+- `2` — Invalid CLI input
+- `3` — Pre-run validation failed
+- `4` — Runtime error
+
+## External Libraries
+
+Load npm packages, local files, or CDN scripts in your test scripts. Requires `--allow-external-libraries` flag for security.
+
+```json
+{
+  "options": {
+    "libraries": [
+      {
+        "name": "validator",
+        "source": { "type": "npm", "package": "validator" },
+        "version": "^13.11.0"
+      },
+      {
+        "name": "myutils",
+        "source": { "type": "file", "path": "./utils/helpers.js" }
+      },
+      {
+        "name": "lodash",
+        "source": { "type": "cdn", "url": "https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js" }
+      }
+    ]
+  }
+}
+```
+
+Use in scripts with `require()`:
+
+```javascript
+const validator = require('validator');
+quest.test('Valid email', () => {
+  expect(validator.isEmail('test@example.com')).to.be.true;
+});
+```
+
+Run with: `fracture run collection.json --allow-external-libraries`
+
+See [CLI documentation](../../docs/quest_cli.md#external-libraries) for details.
+
 ## Documentation
 
-- [Fracture Documentation](https://apiquest.net/docs/fracture)
-- [Schema Specification](https://apiquest.net/schemas/collection-v1.0.json)
+- [CLI Reference](../../docs/quest_cli.md)
+- [Runner API](../../docs/quest_runner.md)
+- [Schema Specification](../../docs/quest_schema_spec.md)
 
 ## License
 

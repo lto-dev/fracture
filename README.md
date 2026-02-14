@@ -9,6 +9,7 @@ Fracture ([`@apiquest/fracture`](packages/fracture/)) is the core runner engine 
 - **Deterministic test counting** — Test counts are known before execution starts (critical for CI reporting)
 - **Plugin architecture** — Protocol plugins (HTTP, gRPC, GraphQL, WebSocket), auth plugins, and value providers (vaults)
 - **Collection-level iterations** — Data-driven testing with CSV/JSON iteration data, CLI overrides entire collection
+- **External libraries** — Load npm packages, local files, or CDN scripts (opt-in with `--allow-external-libraries`)
 - **Programmatic API** — Full TypeScript library with event-based reporters
 
 ## Requirements
@@ -56,6 +57,46 @@ fracture run ./examples/basic-api.json \
   --parallel \
   --concurrency 5
 ```
+
+### External Libraries
+
+Load npm packages, local files, or CDN scripts for use in test scripts:
+
+```bash
+fracture run ./examples/external-libraries-test.json \
+  --allow-external-libraries
+```
+
+Collection definition:
+
+```json
+{
+  "options": {
+    "libraries": [
+      {
+        "name": "validator",
+        "source": { "type": "npm", "package": "validator" },
+        "version": "^13.11.0"
+      },
+      {
+        "name": "myutils",
+        "source": { "type": "file", "path": "./examples/myutils.cjs" }
+      }
+    ]
+  }
+}
+```
+
+Use in scripts:
+
+```javascript
+const validator = require('validator');
+quest.test('Email is valid', () => {
+  expect(validator.isEmail('test@example.com')).to.be.true;
+});
+```
+
+**Security Note:** External libraries execute in the runner process. Only use trusted sources. The `--allow-external-libraries` flag is required to opt-in.
 
 ### CI/CD Usage (Exit Codes)
 
@@ -164,9 +205,14 @@ The CLI exposes the following core options used by the runner:
 - `--proxy <url>` / `--proxy-auth <user:pass>` / `--no-proxy <hosts>`
 - `--follow-redirects` / `--no-follow-redirects` / `--max-redirects <count>`
 - `--cookie <name=value>` — repeatable
+- `--cookie-jar` — enable cookie jar
 - `--cookie-jar-persist` — persist cookies across runs
 - `--log-level <level>` — error | warn | info | debug | trace
 - `--no-strict-mode` — disable strict validation
+- `--plugin-dir <path>` — additional plugin directory to scan (repeatable)
+- `--install-plugins` — auto-install missing plugins globally via npm
+- `--allow-external-libraries` — enable loading external libraries (npm/file/cdn)
+- `--config <file>` — load options from config file
 
 ## Why Fracture? (vs Newman/Bruno/Insomnia CLI)
 
