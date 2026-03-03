@@ -35,6 +35,8 @@ export interface HttpBodyKV {
 export interface HttpBodyData {
   mode: HttpBodyMode;
   raw?: string;        // Used when mode is 'raw' or 'binary' (binary expects base64)
+  /** MIME type for raw mode body. Automatically set as Content-Type header if not overridden by user. */
+  language?: string;
   kv?: HttpBodyKV[];   // Used when mode is 'urlencoded' or 'formdata'
 }
 

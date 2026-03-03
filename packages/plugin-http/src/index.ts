@@ -2,16 +2,10 @@ import got, { OptionsOfTextResponseBody, Response, RequestError } from 'got';
 import FormData from 'form-data';
 import type { IProtocolPlugin, Request, ExecutionContext, ProtocolResponse, ValidationResult, ValidationError, RuntimeOptions, ILogger } from '@apiquest/types';
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent';
+import type { HttpBodyData } from './types.js';
 
 // Export types for external consumption
 export type { HttpResponseData, HttpBodyMode, HttpBodyKV, HttpBodyData, HttpRequestData } from './types.js';
-
-interface BodyObject {
-  mode?: string;
-  raw?: string;
-  kv?: Array<{ key?: string; value?: unknown; type?: string; description?: string }>;
-  [key: string]: unknown;
-}
 
 // Helper functions for string validation
 function isNullOrEmpty(value: string | null | undefined): boolean {
@@ -418,16 +412,25 @@ export const httpPlugin: IProtocolPlugin = {
         if (typeof body === 'string') {
           gotOptions.body = body;
         } else if (typeof body === 'object') {
-          const bodyObj = body as BodyObject;
+          const bodyObj = body as HttpBodyData;
 
           if (bodyObj.mode === 'none') {
             logger?.trace('HTTP body mode set to none; skipping body');
           } else if (bodyObj.mode === 'raw' && typeof bodyObj.raw === 'string') {
             gotOptions.body = bodyObj.raw;
+            // Set Content-Type from body.language if not already specified by user (case-insensitive per RFC 7230)
+            if (bodyObj.language) {
+              const language = bodyObj.language;
+              gotOptions.headers ??= {};
+              const alreadySet = Object.keys(gotOptions.headers).some((k) => k.toLowerCase() === 'content-type');
+              if (!alreadySet) {
+                gotOptions.headers['content-type'] = language;
+              }
+            }
           } else if (bodyObj.mode === 'urlencoded' && Array.isArray(bodyObj.kv)) {
             const params = new URLSearchParams();
-            bodyObj.kv.forEach((item: { key?: string; value?: unknown; }) => {
-              if (typeof item.key === 'string' && item.value !== undefined) {
+            bodyObj.kv.forEach((item) => {
+              if (item.key && item.value !== undefined) {
                 params.append(item.key, String(item.value));
               }
             });
@@ -436,14 +439,14 @@ export const httpPlugin: IProtocolPlugin = {
             gotOptions.headers['content-type'] = 'application/x-www-form-urlencoded';
           } else if (bodyObj.mode === 'formdata' && Array.isArray(bodyObj.kv)) {
             const formData = new FormData();
-            bodyObj.kv.forEach((item: { key?: string; value?: unknown; type?: string; }) => {
-              if (typeof item.key !== 'string' || item.value === undefined) return;
+            bodyObj.kv.forEach((item) => {
+              if (!item.key) return;
               const itemType = item.type === 'binary' ? 'binary' : 'text';
-              if (itemType === 'binary' && typeof item.value === 'string') {
+              if (itemType === 'binary') {
                 const buffer = Buffer.from(item.value, 'base64');
                 formData.append(item.key, buffer, { filename: item.key });
               } else {
-                formData.append(item.key, String(item.value));
+                formData.append(item.key, item.value);
               }
             });
             gotOptions.body = formData as unknown as string;
