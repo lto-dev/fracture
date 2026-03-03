@@ -1,6 +1,6 @@
 {
   "name": "@apiquest/plugin-sse",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "SSE protocol plugin for ApiQuest",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

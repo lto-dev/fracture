@@ -419,7 +419,7 @@ export const httpPlugin: IProtocolPlugin = {
           } else if (bodyObj.mode === 'raw' && typeof bodyObj.raw === 'string') {
             gotOptions.body = bodyObj.raw;
             // Set Content-Type from body.language if not already specified by user (case-insensitive per RFC 7230)
-            if (bodyObj.language) {
+            if (typeof bodyObj.language === 'string' && bodyObj.language !== '') {
               const language = bodyObj.language;
               gotOptions.headers ??= {};
               const alreadySet = Object.keys(gotOptions.headers).some((k) => k.toLowerCase() === 'content-type');
@@ -430,8 +430,8 @@ export const httpPlugin: IProtocolPlugin = {
           } else if (bodyObj.mode === 'urlencoded' && Array.isArray(bodyObj.kv)) {
             const params = new URLSearchParams();
             bodyObj.kv.forEach((item) => {
-              if (item.key && item.value !== undefined) {
-                params.append(item.key, String(item.value));
+              if (item.key !== '' && item.value !== '') {
+                params.append(item.key, item.value);
               }
             });
             gotOptions.body = params.toString();
@@ -440,7 +440,7 @@ export const httpPlugin: IProtocolPlugin = {
           } else if (bodyObj.mode === 'formdata' && Array.isArray(bodyObj.kv)) {
             const formData = new FormData();
             bodyObj.kv.forEach((item) => {
-              if (!item.key) return;
+              if (item.key === '') return;
               const itemType = item.type === 'binary' ? 'binary' : 'text';
               if (itemType === 'binary') {
                 const buffer = Buffer.from(item.value, 'base64');
