@@ -11,6 +11,7 @@ import { isNullOrWhitespace } from './utils.js';
 
 interface ConsoleAPI {
   log(...args: unknown[]): void;
+  debug(...args: unknown[]): void;
   info(...args: unknown[]): void;
   warn(...args: unknown[]): void;
   error(...args: unknown[]): void;
@@ -182,6 +183,11 @@ export class ScriptEngine {
         const message = args.map(safeStringify).join(' ');
         self.consoleOutput.push(message);
         console.log(message);
+      },
+      debug(...args: unknown[]) {
+        const message = args.map(safeStringify).join(' ');
+        self.consoleOutput.push(`[DEBUG] ${message}`);
+        console.debug(message);
       },
       info(...args: unknown[]) {
         const message = args.map(safeStringify).join(' ');

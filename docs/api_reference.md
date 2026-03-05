@@ -600,6 +600,7 @@ User script output.
 
 ```javascript
 console.log(...args: unknown[]): void
+console.debug(...args: unknown[]): void
 console.error(...args: unknown[]): void
 console.warn(...args: unknown[]): void
 console.info(...args: unknown[]): void
