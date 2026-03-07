@@ -1,4 +1,4 @@
-import type { IProtocolPlugin, IAuthPlugin, IValueProviderPlugin, Request, ExecutionContext, ProtocolResponse, RuntimeOptions, Auth } from '@apiquest/types';
+import type { IProtocolPlugin, IAuthPlugin, IValueProviderPlugin, Request, ExecutionContext, ProtocolResponse, RuntimeOptions, Auth, AuthExecutor } from '@apiquest/types';
 import { Logger } from './Logger.js';
 
 export class PluginManager {
@@ -56,7 +56,7 @@ export class PluginManager {
   }
 
   /**
-   * Apply auth to request if auth is configured
+   * Apply preemptive auth to request (bearer, basic, apikey, oauth2, etc.)
    */
   private async applyAuth(request: Request, auth: Auth, options: RuntimeOptions): Promise<Request> {
     if (auth.type === 'none' || auth.type === 'inherit') {
@@ -69,6 +69,11 @@ export class PluginManager {
       throw new Error(`No auth plugin registered for type: ${auth.type}`);
     }
 
+    if (typeof authPlugin.apply !== 'function') {
+      this.logger.error(`Auth plugin '${auth.type}' has no apply() method`);
+      throw new Error(`Auth plugin '${auth.type}' has no apply() method`);
+    }
+
     this.logger.debug(`Applying auth: ${auth.type} (plugin: ${authPlugin.name})`);
     
     try {
@@ -79,6 +84,27 @@ export class PluginManager {
       this.logger.error(`Auth plugin error (${auth.type}): ${errorMsg}`);
       throw new Error(`Auth plugin error (${auth.type}): ${errorMsg}`);
     }
+  }
+
+  /**
+   * Build an AuthExecutor for the given protocol plugin.
+   * Uses the protocol plugin's createAuthExecutor() if available,
+   * otherwise wraps plugin.execute() directly (works for HTTP, SOAP, GraphQL).
+   */
+  private buildAuthExecutor(
+    plugin: IProtocolPlugin,
+    context: ExecutionContext,
+    options: RuntimeOptions,
+    emitEvent?: (eventName: string, eventData: unknown) => Promise<void>
+  ): AuthExecutor {
+    if ('createAuthExecutor' in plugin && typeof plugin.createAuthExecutor === 'function') {
+      return plugin.createAuthExecutor(context, options, emitEvent);
+    }
+    return {
+      send: async (req: Request) => {
+        return await plugin.execute(req, context, options, emitEvent);
+      }
+    };
   }
 
   /**
@@ -128,12 +154,50 @@ export class PluginManager {
       }
     }
 
-    // Apply auth if configured (should already be resolved)
+    // Dispatch to negotiate() or apply() based on which method the auth plugin provides.
+    // negotiate() drives multi-round handshakes (Digest, NTLM).
+    // apply() handles preemptive one-shot auth (Bearer, Basic, ApiKey, OAuth2).
     let modifiedRequest = request;
-    if (request.auth !== null && request.auth !== undefined) {
-      modifiedRequest = await this.applyAuth(modifiedRequest, request.auth, options);
-      
+    if (request.auth !== null && request.auth !== undefined && request.auth.type !== 'none' && request.auth.type !== 'inherit') {
+      const authPlugin = this.authPlugins.get(request.auth.type);
+
+      if (authPlugin === null || authPlugin === undefined) {
+        this.logger.error(`No auth plugin registered for type: ${request.auth.type}`);
+        throw new Error(`No auth plugin registered for type: ${request.auth.type}`);
+      }
+
+      const hasNegotiate = typeof authPlugin.negotiate === 'function';
+      const hasApply = typeof authPlugin.apply === 'function';
+
+      if (!hasNegotiate && !hasApply) {
+        throw new Error(
+          `Auth plugin '${request.auth.type}' must implement either apply() or negotiate(). ` +
+          `Plugin '${authPlugin.name}' has neither.`
+        );
+      }
+
+      const authPluginLogger = this.logger.createLogger(`Auth:${authPlugin.name}`);
+
+      if (hasNegotiate) {
+        // Handshake path: auth plugin drives the full challenge/response exchange.
+        this.logger.debug(`Negotiating auth: ${request.auth.type} (plugin: ${authPlugin.name})`);
+        try {
+          const executor = this.buildAuthExecutor(plugin, context, options, emitEvent);
+          modifiedRequest = await authPlugin.negotiate!(modifiedRequest, request.auth, options, executor, authPluginLogger);
+        } catch (error: unknown) {
+          const errorMsg = (error as { message?: string }).message ?? 'Unknown error';
+          this.logger.error(`Auth negotiate error (${request.auth.type}): ${errorMsg}`);
+          throw new Error(`Auth negotiate error (${request.auth.type}): ${errorMsg}`);
+        }
+      } else {
+        // Preemptive path: existing behavior, unchanged.
+        modifiedRequest = await this.applyAuth(modifiedRequest, request.auth, options);
+      }
+
       // Update context.currentRequest to reflect auth modifications
+      context.currentRequest = modifiedRequest;
+    } else if (request.auth !== null && request.auth !== undefined) {
+      // auth.type is 'none' or 'inherit' — no auth applied, still update context
       context.currentRequest = modifiedRequest;
     }
 

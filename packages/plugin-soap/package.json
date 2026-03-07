@@ -1,0 +1,73 @@
+{
+  "name": "@apiquest/plugin-soap",
+  "version": "1.0.0",
+  "description": "SOAP protocol plugin for ApiQuest",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hh-apiquest/fracture.git",
+    "directory": "packages/plugin-soap"
+  },
+  "scripts": {
+    "build": "rollup -c && tsc --emitDeclarationOnly && node --input-type=module -e \"import{copyFileSync}from'node:fs';copyFileSync('src/scriptDeclarations.request.d.ts','dist/scriptDeclarations.request.d.ts');copyFileSync('src/scriptDeclarations.response.d.ts','dist/scriptDeclarations.response.d.ts');\"",
+    "dev": "rollup -c --watch",
+    "test": "vitest"
+  },
+  "keywords": [
+    "apiquest",
+    "api",
+    "soap",
+    "wsdl",
+    "plugin",
+    "fracture"
+  ],
+  "author": "ApiQuest",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@xmldom/xmldom": "^0.9.8",
+    "fast-xml-parser": "^4.5.3",
+    "got": "^14.6.6",
+    "hpagent": "^1.2.0",
+    "soap": "^1.0.0",
+    "xml-crypto": "^6.0.1",
+    "xmlbuilder2": "^3.1.1",
+    "xpath": "^0.0.34"
+  },
+  "devDependencies": {
+    "@apiquest/types": "workspace:*",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/node": "^25.2.3",
+    "rollup": "^4.57.1",
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "@apiquest/types": "^1.0.0"
+  },
+  "apiquest": {
+    "type": "protocol",
+    "runtime": [
+      "fracture"
+    ],
+    "capabilities": {
+      "provides": {
+        "protocols": [
+          "soap"
+        ]
+      },
+      "supports": {
+        "authTypes": [
+          "bearer",
+          "basic",
+          "oauth2",
+          "apikey"
+        ]
+      }
+    }
+  }
+}

@@ -349,7 +349,7 @@ export const mockOptionsPlugin: IProtocolPlugin = {
   name: 'Mock Options Plugin',
   version: '1.0.0',
   description: 'Echoes runtime options for testing',
-  supportedAuthTypes: ['mock-auth', 'mock-auth1', 'mock-auth2', 'mock-auth3'],
+  supportedAuthTypes: ['mock-auth', 'mock-auth1', 'mock-auth2', 'mock-auth3', 'mock-negotiate'],
   protocolAPIProvider(context) {
     return buildMockProvider(context);
   },
@@ -673,6 +673,38 @@ export const mockAuthPlugin: IAuthPlugin = {
       valid: hasToken,
       errors: hasToken ? [] : [{
         message: 'Mock auth requires a token',
+        location: 'auth',
+        source: 'auth'
+      }]
+    };
+  }
+};
+
+/**
+ * Mock negotiate auth plugin for testing handshake dispatch.
+ * Implements negotiate() instead of apply() — used to verify PluginManager routes
+ * to negotiate() when an auth plugin provides it.
+ */
+export const mockNegotiatePlugin: IAuthPlugin = {
+  name: 'Mock Negotiate Auth Plugin',
+  version: '1.0.0',
+  description: 'Mock auth plugin implementing negotiate() for testing handshake dispatch',
+  authTypes: ['mock-negotiate'],
+  protocols: ['mock-options', 'http'],
+  dataSchema: {},
+
+  async negotiate(request: Request, auth: Auth): Promise<Request> {
+    request.data.headers = request.data.headers ?? {};
+    (request.data.headers as Record<string, string>)['X-Mock-Negotiate'] = (auth.data as { token?: string })?.token ?? 'negotiated';
+    return request;
+  },
+
+  validate(auth: Auth): ValidationResult {
+    const hasToken = Boolean((auth.data as { token?: string })?.token);
+    return {
+      valid: hasToken,
+      errors: hasToken ? [] : [{
+        message: 'Mock negotiate auth requires a token',
         location: 'auth',
         source: 'auth'
       }]

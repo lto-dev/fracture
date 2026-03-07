@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@apiquest/types": "workspace:*",
+    "@types/node": "^22.0.0",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
@@ -53,7 +54,9 @@
           "bearer",
           "basic",
           "apikey",
-          "oauth2"
+          "oauth2",
+          "digest",
+          "ntlm"
         ]
       },
       "supports": {

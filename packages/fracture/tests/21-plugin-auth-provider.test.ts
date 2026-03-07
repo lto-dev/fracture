@@ -67,7 +67,7 @@ describe('Section 21: Auth Provider Plugin Integration', () => {
       };
 
       const plugin = pluginManager.getAuthPlugin('mock-auth');
-      const modifiedRequest = await plugin!.apply(request, auth, {});
+      const modifiedRequest = await plugin!.apply!(request, auth, {});
 
       expect(modifiedRequest.data.headers).toBeDefined();
       const headers = modifiedRequest.data.headers as Record<string, string>;
@@ -97,7 +97,7 @@ describe('Section 21: Auth Provider Plugin Integration', () => {
       };
 
       const plugin = pluginManager.getAuthPlugin('mock-auth1');
-      const modifiedRequest = await plugin!.apply(request, auth, {});
+      const modifiedRequest = await plugin!.apply!(request, auth, {});
 
       const headers = modifiedRequest.data.headers as Record<string, string>;
       expect(headers['X-Custom-Header']).toBe('custom-value');
@@ -134,9 +134,9 @@ describe('Section 21: Auth Provider Plugin Integration', () => {
         data: { method: 'POST', url: 'mock://api.example.com/data' }
       };
       
-      const result1 = await plugin!.apply(request1, auth1, {});
-      const result2 = await plugin!.apply(request2, auth2, {});
-      const result3 = await plugin!.apply(request3, auth3, {});
+      const result1 = await plugin!.apply!(request1, auth1, {});
+      const result2 = await plugin!.apply!(request2, auth2, {});
+      const result3 = await plugin!.apply!(request3, auth3, {});
 
       const headers1 = result1.data.headers as Record<string, string>;
       const headers2 = result2.data.headers as Record<string, string>;
@@ -164,7 +164,7 @@ describe('Section 21: Auth Provider Plugin Integration', () => {
       };
 
       const plugin = pluginManager.getAuthPlugin('mock-auth');
-      const modifiedRequest = await plugin!.apply(request, auth, {});
+      const modifiedRequest = await plugin!.apply!(request, auth, {});
 
       expect(modifiedRequest.data.headers).toBeDefined();
       const headers = modifiedRequest.data.headers as Record<string, string>;
@@ -271,7 +271,7 @@ describe('Section 21: Auth Provider Plugin Integration', () => {
       };
 
       const plugin = pluginManager.getAuthPlugin('error-auth');
-      await expect(plugin!.apply(request, auth, {})).rejects.toThrow('Auth plugin error during apply');
+      await expect(plugin!.apply!(request, auth, {})).rejects.toThrow('Auth plugin error during apply');
     });
 
     test('should handle async errors in apply', async () => {
@@ -311,7 +311,7 @@ describe('Section 21: Auth Provider Plugin Integration', () => {
       };
 
       const plugin = pluginManager.getAuthPlugin('async-error-auth');
-      await expect(plugin!.apply(request, auth, {})).rejects.toThrow('Async auth error');
+      await expect(plugin!.apply!(request, auth, {})).rejects.toThrow('Async auth error');
     });
 
     test('should handle validation errors in validate method', () => {
@@ -488,7 +488,7 @@ describe('Section 21: Auth Provider Plugin Integration', () => {
       };
 
       const plugin = pluginManager.getAuthPlugin('mock-auth');
-      const modifiedRequest = await plugin!.apply(request, auth, {});
+      const modifiedRequest = await plugin!.apply!(request, auth, {});
 
       const headers = modifiedRequest.data.headers as Record<string, string>;
       expect(headers['X-Mock-Auth']).toBe('valid-token');
@@ -513,7 +513,7 @@ describe('Section 21: Auth Provider Plugin Integration', () => {
       };
 
       const plugin = pluginManager.getAuthPlugin('mock-auth');
-      const modifiedRequest = await plugin!.apply(request, auth, {});
+      const modifiedRequest = await plugin!.apply!(request, auth, {});
 
       const headers = modifiedRequest.data.headers as Record<string, string>;
       expect(headers['X-Mock-Auth']).toBe(12345);  // Plugin doesn't type-check
@@ -564,7 +564,7 @@ describe('Section 21: Auth Provider Plugin Integration', () => {
       };
 
       const plugin = pluginManager.getAuthPlugin('mock-auth');
-      const modifiedRequest = await plugin!.apply(request, auth, {});
+      const modifiedRequest = await plugin!.apply!(request, auth, {});
 
       const headers = modifiedRequest.data.headers as Record<string, string>;
       expect(headers['X-Mock-Auth']).toBe(999);

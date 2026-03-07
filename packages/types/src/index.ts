@@ -491,6 +491,19 @@ export interface PluginPackageJson {
 }
 
 // ============================================================================
+// Auth Executor Interface
+// ============================================================================
+
+/**
+ * Wraps one wire round-trip via the current protocol plugin.
+ * Auth plugins that implement negotiate() use this to probe for challenges
+ * and retry with computed credentials without touching protocol internals.
+ */
+export interface AuthExecutor {
+  send(request: Request): Promise<ProtocolResponse>;
+}
+
+// ============================================================================
 // Protocol Plugin Interface
 // ============================================================================
 
@@ -537,6 +550,18 @@ export interface IProtocolPlugin {
   ): Promise<ProtocolResponse>;
   
   validate(request: Request, options: RuntimeOptions): ValidationResult;
+
+  /**
+   * Optional: create an AuthExecutor tailored for this protocol.
+   * The default executor provided by PluginManager wraps execute() directly and
+   * works for HTTP-compatible protocols. Override if your protocol has non-standard
+   * challenge/response semantics (e.g., gRPC status 16 UNAUTHENTICATED).
+   */
+  createAuthExecutor?(
+    context: ExecutionContext,
+    options: RuntimeOptions,
+    emitEvent?: (eventName: string, eventData: unknown) => Promise<void>
+  ): AuthExecutor;
 }
 
 export interface PluginOptionsSchema {
@@ -599,13 +624,32 @@ export interface IAuthPlugin {
   // Example: bearer has { token: string }, basic has { username: string, password: string }
   dataSchema: unknown;  // JSON Schema or custom schema format
   
-  apply(
+  /**
+   * PREEMPTIVE AUTH — mutate request before sending.
+   * Use for: bearer, basic, apikey, hawk, aws-sigv4, asap/jwt, oauth1, oauth2.
+   * Called when auth plugin does NOT implement negotiate().
+   */
+  apply?(
     request: Request,
     auth: Auth,
     options: RuntimeOptions,
-    logger?: ILogger  // Optional logger from fracture
+    logger?: ILogger
   ): Promise<Request>;
-  
+
+  /**
+   * HANDSHAKE AUTH — drive challenge/response exchange.
+   * Use for: digest, ntlm, negotiate, kerberos, custom multi-round schemes.
+   * Plugin receives an executor and drives the full conversation.
+   * Returns the final request with auth headers applied after negotiation.
+   */
+  negotiate?(
+    request: Request,
+    auth: Auth,
+    options: RuntimeOptions,
+    executor: AuthExecutor,
+    logger?: ILogger
+  ): Promise<Request>;
+
   validate(auth: Auth, options: RuntimeOptions): ValidationResult;
 }
 

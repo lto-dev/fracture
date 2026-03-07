@@ -1,0 +1,5 @@
+src/
+tests/
+docs/
+*.log
+*.md
